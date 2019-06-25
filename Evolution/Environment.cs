@@ -2,7 +2,8 @@
 
 namespace Evolution
 {
-    public class Class1
+    class EnvironmentOf<Creature>
     {
+
     }
 }
