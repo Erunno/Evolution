@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Evolution.Users_interfaces
+namespace Evolution
 {
     public interface IMutation<Creature>
     {
