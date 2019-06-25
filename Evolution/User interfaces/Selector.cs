@@ -42,6 +42,8 @@ namespace Evolution.Users_interfaces
 
     class DefaultSelector<Creature> : ISelector<Creature> //ToDo implement default selector
     {
+        public FitnessFunctionDelegate<Creature> FitnessFunction => throw new NotImplementedException();
+
         public void AddCreature(RatedCreature<Creature> ratedCreature)
         {
             throw new NotImplementedException();
