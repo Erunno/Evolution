@@ -37,17 +37,19 @@ namespace Utils
         {
             int left = LeftSon(root);
             int right = RightSon(root);
-            int minimal = -1;
+            int maximal = -1;
 
             if (left < Count && heap[left].CompareTo(heap[root]) > 0)
-                minimal = left;
-            else if (right < Count && heap[right].CompareTo(heap[root]) > 0)
-                minimal = right;
-            else
-                return;
+                maximal = left;
+            if (right < Count && heap[right].CompareTo(heap[root]) > 0)
+                if(heap[left].CompareTo(heap[right]) < 0)
+                    maximal = right;
 
-            heap.Swap(minimal, root);
-            SinkElement(right);
+            if (maximal == -1) //if maximal hasnt been changed
+                return;         //root is properly emplaced
+
+            heap.Swap(maximal, root);
+            SinkElement(maximal);
         }
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace Utils
         {
             StringBuilder output = new StringBuilder();
             for (int i = 0; i < Count; i++)
-                output.AppendLine(heap[i].ToString());
+                output.Append(heap[i].ToString() + " ");
 
             return output.ToString();
         }
