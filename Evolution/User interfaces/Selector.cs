@@ -56,15 +56,18 @@ namespace Evolution
             bestCreatures = new RatedCreature<Creature>[sizeOfSetOfReturnedCreatures];
         }
 
-        public void AddCreature(RatedCreature<Creature> ratedCreature)
+        public void AddCreature(RatedCreature<Creature> newCreature)
         {
-            if (ratedCreature.CompareTo(heap.PeekMin()) < 0) //if ratedCreature is worse than every creature in heap
-                return;                                      //then dont save it and return
-
             if (heap.IsFull)
-                heap.ExtractMin(); //make space for new element
-
-            heap.Insert(ratedCreature);
+            {
+                if (newCreature.CompareTo(heap.PeekMin()) > 0) //if newCreature is better than the worst of creatures in heap
+                {
+                    heap.ExtractMin();
+                    heap.Insert(newCreature);                  
+                }
+            }
+            else
+                heap.Insert(newCreature);
         }
 
         private RatedCreature<Creature>[] bestCreatures;
@@ -85,7 +88,7 @@ namespace Evolution
 
         private IEnumerable<RatedCreature<Creature>> GetRatedCreatures_IterMethod(int count, int versionLocal)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = count - 1; i >= 0; i--)
             {
                 if (versionOfBestCreatures != versionLocal)
                     throw new InvalidOperationException();
