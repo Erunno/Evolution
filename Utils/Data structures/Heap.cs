@@ -109,9 +109,26 @@ namespace Utils
 
             return output.ToString();
         }
+
+        /// <summary>
+        /// Creates new array and copies all elements to new array
+        /// </summary>
+        public void SetNewSize(int newSize)
+        {
+            if (newSize < Count)
+                throw new UvalidSizeOfHeapException();
+
+            T[] newHeap = new T[newSize];
+
+            for (int i = 0; i < Count; i++)
+                newHeap[i] = heap[i];
+
+            heap = newHeap;
+        }
     }
 
     public class EmptyHeapExeption : Exception { }
     public class HeapOverflowException : Exception { }
     public class SmallArrayException : Exception { }
+    public class UvalidSizeOfHeapException : Exception { }
 }
