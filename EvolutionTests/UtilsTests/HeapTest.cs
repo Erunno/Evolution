@@ -28,11 +28,11 @@ namespace UtilsTests
                 heap.Insert(inputs[i]);
 
             for (int i = 0; i < size; i++)
-                outputs.Add(heap.ExtractMax());
+                outputs.Add(heap.ExtractMin());
 
             //assert
             var expected = inputs;
-            expected.Sort((x,y) => y.CompareTo(x));
+            expected.Sort();
 
             CollectionAssert.AreEqual(expected, outputs);
         }

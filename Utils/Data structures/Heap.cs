@@ -17,12 +17,12 @@ namespace Utils
         /// <summary>
         /// Returns max element of heap, but dont remove it
         /// </summary>
-        public T PeekMax() => Count != 0 ? heap[0] : throw new EmptyHeapExeption();
+        public T PeekMin() => Count != 0 ? heap[0] : throw new EmptyHeapExeption();
 
         /// <summary>
         /// Returns max element of heap and removes it
         /// </summary>
-        public T ExtractMax()
+        public T ExtractMin()
         {
             if (Count == 0) throw new EmptyHeapExeption();
 
@@ -39,10 +39,10 @@ namespace Utils
             int right = RightSon(root);
             int maximal = -1;
 
-            if (left < Count && heap[left].CompareTo(heap[root]) > 0)
+            if (left < Count && heap[left].CompareTo(heap[root]) < 0)
                 maximal = left;
-            if (right < Count && heap[right].CompareTo(heap[root]) > 0)
-                if(heap[left].CompareTo(heap[right]) < 0)
+            if (right < Count && heap[right].CompareTo(heap[root]) < 0)
+                if(heap[left].CompareTo(heap[right]) > 0)
                     maximal = right;
 
             if (maximal == -1) //if maximal hasnt been changed
@@ -70,7 +70,7 @@ namespace Utils
             while(currNode > 0)
             {
                 int parent = Parent(currNode);
-                if (heap[parent].CompareTo(heap[currNode]) > 0)
+                if (heap[parent].CompareTo(heap[currNode]) < 0)
                     return;
 
                 heap.Swap(parent, currNode);
