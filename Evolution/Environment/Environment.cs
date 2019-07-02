@@ -41,7 +41,7 @@ namespace Evolution
         /// <summary>
         /// It is initialized with the number of logical cores
         /// </summary>
-        public int MaximalNumOfRunningThreads { get; set; } = Environment.ProcessorCount;
+        public int MaximalNumOfRunningThreads { get; set; } = System.Environment.ProcessorCount;
 
         public int NumOfGenerationSoFar { get; private set; }
 
