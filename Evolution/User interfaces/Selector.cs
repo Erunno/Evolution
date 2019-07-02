@@ -52,16 +52,48 @@ namespace Evolution
         public DefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, int sizeOfSetOfReturnedCreatures)
         {
             FitnessFunction = fitnessFunction;
+            heap = new HeapOfMaximalSize<RatedCreature<Creature>>(sizeOfSetOfReturnedCreatures);
+            bestCreatures = new RatedCreature<Creature>[sizeOfSetOfReturnedCreatures];
         }
 
         public void AddCreature(RatedCreature<Creature> ratedCreature)
         {
-            throw new NotImplementedException();
+            if (ratedCreature.CompareTo(heap.PeekMin()) < 0) //if ratedCreature is worse than every creature in heap
+                return;                                      //then dont save it and return
+
+            if (heap.IsFull)
+                heap.ExtractMin(); //make space for new element
+
+            heap.Insert(ratedCreature);
         }
+
+        private RatedCreature<Creature>[] bestCreatures;
+        int versionOfBestCreatures = 0;
 
         public IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count)
         {
-            throw new NotImplementedException();
+            if (heap.Count < count)
+                throw new NotEnoughElementsException();
+
+            heap.CopyHeapToArray(bestCreatures);
+
+            versionOfBestCreatures++;
+            Array.Sort(bestCreatures, index: 0, length: heap.Count);
+
+            return GetRatedCreatures_IterMethod(count,versionOfBestCreatures);
+        }
+
+        private IEnumerable<RatedCreature<Creature>> GetRatedCreatures_IterMethod(int count, int versionLocal)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (versionOfBestCreatures != versionLocal)
+                    throw new InvalidOperationException();
+
+                yield return bestCreatures[i];
+            }
         }
     }
+
+    public class NotEnoughElementsException : Exception { }
 }
