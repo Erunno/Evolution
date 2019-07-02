@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Evolution
 {
-    class Pool<Creature>
+    class InterPool<Creature>
     {
 
         public int Count { get; }
