@@ -1,4 +1,9 @@
-﻿namespace Evolution
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Utils;
+
+namespace Evolution
 {
     public struct RatedCreature<Creature> : IComparable<RatedCreature<Creature>>
     {
