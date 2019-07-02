@@ -96,6 +96,20 @@ namespace Evolution
                 yield return bestCreatures[i];
             }
         }
+
+        public void ChangeSizeOfHeap(int newSize)
+        {
+            if (newSize < heap.Count)
+                PrepareHeapToDownSizing(newSize);
+
+            heap.SetNewSize(newSize);
+        }
+
+        private void PrepareHeapToDownSizing(int newSize)
+        {
+            for (int i = 0; i < heap.Count - newSize; i++)
+                heap.ExtractMin();
+        } 
     }
 
     public class NotEnoughElementsException : Exception { }
