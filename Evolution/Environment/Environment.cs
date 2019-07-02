@@ -18,12 +18,25 @@ namespace Evolution
         /// <summary>
         /// Maximal number of individuals in one step
         /// </summary>
-        public int SizeOfPupulation { get; set; }
+        public int SizeOfPupulation { get; set; } = 1000;
 
+        private int _numOfSurvivals = 100;
         /// <summary>
         /// Maximal number of survivals from generation n to generation n+1
+        /// 
+        /// Setting new value can mean memory allocation (in case of default selector)
+        /// therefore it is not good idea doing it often
         /// </summary>
-        public int NumberOfSurvivals { get; set; }
+        public int NumberOfSurvivals {
+            get => _numOfSurvivals;
+            private set
+            {
+                if (Selector.GetType() == typeof(DefaultSelector<Creature>))
+                    ((DefaultSelector<Creature>)Selector).ChangeSizeOfHeap(value);
+
+                _numOfSurvivals = value;
+            }
+        }
 
         /// <summary>
         /// It is initialized with the number of logical cores
