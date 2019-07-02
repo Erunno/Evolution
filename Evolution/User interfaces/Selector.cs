@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Utils;
 
 namespace Evolution
 {
@@ -25,7 +26,7 @@ namespace Evolution
     /// </summary>
     public delegate double FitnessFunctionDelegate<Creature>(Creature creture);
 
-    public struct RatedCreature<Creature>
+    public struct RatedCreature<Creature> : IComparable<RatedCreature<Creature>>
     {
         /// <summary>
         /// Return value of fitness function
@@ -38,11 +39,20 @@ namespace Evolution
             this.FitnessValue = fitnessValue;
             this.TheCreature = creature;
         }
+
+        public int CompareTo(RatedCreature<Creature> other) => FitnessValue.CompareTo(other.FitnessValue);
     }
 
     class DefaultSelector<Creature> : ISelector<Creature> //ToDo implement default selector
     {
-        public FitnessFunctionDelegate<Creature> FitnessFunction => throw new NotImplementedException();
+        public FitnessFunctionDelegate<Creature> FitnessFunction { get; }
+
+        HeapOfMaximalSize<RatedCreature<Creature>> heap;
+
+        public DefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, int sizeOfSetOfReturnedCreatures)
+        {
+            FitnessFunction = fitnessFunction;
+        }
 
         public void AddCreature(RatedCreature<Creature> ratedCreature)
         {

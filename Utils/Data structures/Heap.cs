@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Utils
 {
-    public class HeapOfMaximalSize<T> where T : IComparable
+    public class HeapOfMaximalSize<T> where T : IComparable<T>
     {
         public HeapOfMaximalSize(int size)
         {
