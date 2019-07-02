@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Utils
 {
@@ -13,11 +14,14 @@ namespace Utils
 
         private T[] heap;
         public int Count { get; private set; }
+        private int Version { get; set; }
 
         /// <summary>
         /// Returns max element of heap, but dont remove it
         /// </summary>
         public T PeekMin() => Count != 0 ? heap[0] : throw new EmptyHeapExeption();
+
+        public bool IsFull => Count == heap.Length;
 
         /// <summary>
         /// Returns max element of heap and removes it
@@ -25,6 +29,7 @@ namespace Utils
         public T ExtractMin()
         {
             if (Count == 0) throw new EmptyHeapExeption();
+            Version++;
 
             T itemToReturn = heap[0];
             heap[0] = heap[--Count];
@@ -59,6 +64,8 @@ namespace Utils
         {
             if (heap.Length == Count) throw new HeapOverflowException();
 
+            Version++;
+
             heap[Count++] = item;
             ElevateLastMember();
         }
@@ -78,10 +85,21 @@ namespace Utils
             }
         }
 
+
+        /// <summary>
+        /// Copies content of heap to given array
+        /// </summary>
+        public void CopyHeapToArray(T[] copy)
+        {
+            if (copy.Length < Count)
+                throw new SmallArrayException();
+
+            heap.CopyTo(copy, index: 0);
+        }
+
         private int Parent(int node) => (node - 1) / 2;
         private int LeftSon(int node) => 2 * node + 1;
         private int RightSon(int node) => 2 * node + 2;
-
 
         public override string ToString()
         {
@@ -95,4 +113,5 @@ namespace Utils
 
     public class EmptyHeapExeption : Exception { }
     public class HeapOverflowException : Exception { }
+    public class SmallArrayException : Exception { }
 }
