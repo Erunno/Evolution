@@ -40,6 +40,8 @@ namespace Evolution
 
         /// <summary>
         /// It is initialized with the number of logical cores
+        /// 
+        /// Means number of thread computing evolution i.e. thread managing other threads can be running
         /// </summary>
         public int MaximalNumOfRunningThreads { get; set; } = System.Environment.ProcessorCount;
 
