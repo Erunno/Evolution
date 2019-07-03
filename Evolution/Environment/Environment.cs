@@ -5,18 +5,22 @@ namespace Evolution
 {
     class EnvironmentOf<Creature>
     {
-        public EnvironmentOf(Creature forefather)
+        public EnvironmentOf()
         {
             throw new NotImplementedException();
         }
 
         /// <summary>
         /// Is used to select best of each generation
+        /// It must not be emty - at least one Creture have to be present
         /// </summary>
         public ISelector<Creature> Selector { get; set; }
 
         Random rnd = new Random();
 
+        List<IMutation<Creature>> mutations = new List<IMutation<Creature>>();
+        List<ISexualReproduction<Creature>> sexualReproductions = new List<ISexualReproduction<Creature>>();
+        List<IAsexualReproduction<Creature>> asexualReproductions = new List<IAsexualReproduction<Creature>>();
 
         /// <summary>
         /// Maximal number of individuals in one step
@@ -57,29 +61,25 @@ namespace Evolution
         public double MutationRate { get; set; }
 
         /// <summary>
-        /// Creates and sets new default selector using fitness function in argument
+        /// Creates and sets new default selector using fitness function in argument.
+        /// First Creature is needed to start evolution
         /// </summary>
-        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction)
+        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, Creature foreFather)
         {
-            throw new NotImplementedException();
-        }
-
-        public void AddNewBestCreatureFoundEvent(NewBestCretureFoundEventDelegate<Creature> newBestEvent)
-        {
-            throw new NotImplementedException();
+            Selector = new DefaultSelector<Creature>(fitnessFunction, NumberOfSurvivals);
         }
 
         /// <summary>
         /// Is called when new best creature is found
         /// </summary>
-        public NewBestCretureFoundEventDelegate<Creature> NewBestFoundEvent { get; set; }
+        public NewBestCretureFoundEventDelegate<Creature> NewBestFoundEvent { get; set; } = (x) => { };
 
         /// <summary>
         /// Adds new way of asexual reproduction
         /// </summary>
         public void AddAsexualReproduction(IAsexualReproduction<Creature> asexualReproduction)
         {
-            throw new NotImplementedException();
+            asexualReproductions.Add(asexualReproduction);
         }
 
         /// <summary>
@@ -87,7 +87,15 @@ namespace Evolution
         /// </summary>
         public void AddSexualReproduction(ISexualReproduction<Creature> sexualReproduction)
         {
-            throw new NotImplementedException();
+            sexualReproductions.Add(sexualReproduction);
+        }
+
+        /// <summary>
+        /// Adds new way of mutation
+        /// </summary>
+        public void AddMutation(IMutation<Creature> mutation)
+        {
+            mutations.Add(mutation);
         }
 
         /// <summary>
@@ -96,7 +104,7 @@ namespace Evolution
         /// <param name="count">Size of returned IEnumerable</param>
         public IEnumerable<RatedCreature<Creature>> GetBestRatedCreatures(int count)
         {
-            throw new NotImplementedException();
+            return Selector.GetBestCreatures(count);
         }
 
         /// <summary>
