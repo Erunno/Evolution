@@ -7,10 +7,10 @@ namespace Evolution
 {
     class ConsumentRater<Creature>
     {
-        private OutputPool<Creature> outputPool;
-        private InterPool<Creature> sourcePool;
+        public OutputPool<Creature> outputPool { get; set; }
+        public InterPool<Creature> sourcePool { get; set; }
 
-        private Connection connectionToProducent;
+        public Connection ConnectionToProducent { get; set; }
         private EnvironmentOf<Creature> myEnvironment;
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Evolution
 
         private Creature TryGetCreatureOrFallAsleep()
         {
-            connectionToProducent.TryGiveOtherProcessingTime();
+            ConnectionToProducent.TryGiveOtherProcessingTime();
 
             lock (sourcePool)
             {
