@@ -7,6 +7,8 @@ namespace Evolution
     {
         public EnvironmentOf()
         {
+            interval = new IntervalOfChildrenCount<Creature>(this);
+
             throw new NotImplementedException();
         }
 
@@ -22,10 +24,21 @@ namespace Evolution
         List<ISexualReproduction<Creature>> sexualReproductions = new List<ISexualReproduction<Creature>>();
         List<IAsexualReproduction<Creature>> asexualReproductions = new List<IAsexualReproduction<Creature>>();
 
+        private int _sizeOfPopulation = 1000;
         /// <summary>
         /// Maximal number of individuals in one step
+        /// 
+        /// It should be significantly higher than NumberOfSurvivals (at least 5 times bigger)
         /// </summary>
-        public int SizeOfPupulation { get; set; } = 1000;
+        public int SizeOfPupulation
+        {
+            get => _sizeOfPopulation;
+            set
+            {
+                _sizeOfPopulation = value;
+                interval.RecomputeInterval();
+            }
+        }
 
         private int _numOfSurvivals = 100;
         /// <summary>
@@ -36,14 +49,17 @@ namespace Evolution
         /// </summary>
         public int NumberOfSurvivals {
             get => _numOfSurvivals;
-            private set
+            set
             {
                 if (Selector.GetType() == typeof(DefaultSelector<Creature>))
                     ((DefaultSelector<Creature>)Selector).ChangeSizeOfHeap(value);
 
                 _numOfSurvivals = value;
+                interval.RecomputeInterval();
             }
         }
+
+        private IntervalOfChildrenCount<Creature> interval;
 
         /// <summary>
         /// It is initialized with the number of logical cores
@@ -132,10 +148,10 @@ namespace Evolution
             RandomReprodictionPicker<T> GetRandomReprodictionPicker(EnvironmentOf<T> environment, int rndSeed);
         }
 
-        private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker>
+        private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker> //TODO implement RandomReproductionPicker
         {
             EnvironmentOf<CreatureOfRepPicker> environment;
-            Random rnd;
+            public Random rnd { get; }
 
             public RandomReprodictionPicker(EnvironmentOf<CreatureOfRepPicker> environment, int seed)
             {
@@ -157,6 +173,10 @@ namespace Evolution
             {
                 throw new NotImplementedException();
             }
+
+            public int GetNumOfChildren() => rnd.Next(environment.interval.From, environment.interval.To);
+
+            public MeanOfReproduction GetRandomMeanOfReproduction() => (MeanOfReproduction)rnd.Next(0, 3);
         }
     }
 
@@ -168,5 +188,31 @@ namespace Evolution
         IAsexualReproduction<Creature> GetRandomAsexualReproduction();
         ISexualReproduction<Creature> GetRandomSexualReproduction();
         IMutation<Creature> GetRandomMutation();
+        int GetNumOfChildren();
+        MeanOfReproduction GetRandomMeanOfReproduction();
+    }
+
+    enum MeanOfReproduction { sexual, asexual, mutation }
+
+    class IntervalOfChildrenCount<Creature>
+    {
+        public int From, To;
+        private EnvironmentOf<Creature> environment;
+
+        public IntervalOfChildrenCount(EnvironmentOf<Creature> environment)
+        {
+            this.environment = environment;
+            RecomputeInterval();
+        }
+
+        private const int Variation = 3;
+
+        public void RecomputeInterval()
+        {
+            int meanValueOfChildren = (environment.SizeOfPupulation + environment.NumberOfSurvivals) / environment.NumberOfSurvivals; //rounded up
+
+            From = meanValueOfChildren - Variation;
+            To = meanValueOfChildren + Variation + 1; //upper bound is exclusive
+        }
     }
 }
