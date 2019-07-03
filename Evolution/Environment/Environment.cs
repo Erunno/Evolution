@@ -15,6 +15,9 @@ namespace Evolution
         /// </summary>
         public ISelector<Creature> Selector { get; set; }
 
+        Random rnd = new Random();
+
+
         /// <summary>
         /// Maximal number of individuals in one step
         /// </summary>
@@ -112,5 +115,50 @@ namespace Evolution
         {
             throw new NotImplementedException();
         }
+
+        internal IRandomReproductionPicker<Creature> GetRandomReproductionPicker()
+            => new RandomReprodictionPicker<Creature>(this, rnd.Next());
+
+        private interface IRndRepPickerGetter<T>
+        {
+            RandomReprodictionPicker<T> GetRandomReprodictionPicker(EnvironmentOf<T> environment, int rndSeed);
+        }
+
+        private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker>
+        {
+            EnvironmentOf<CreatureOfRepPicker> environment;
+            Random rnd;
+
+            public RandomReprodictionPicker(EnvironmentOf<CreatureOfRepPicker> environment, int seed)
+            {
+                this.environment = environment;
+                rnd = new Random(seed);
+            }
+
+            public IMutation<CreatureOfRepPicker> GetRandomMutation()
+            {
+                throw new NotImplementedException();
+            }
+
+            public ISexualReproduction<CreatureOfRepPicker> GetRandomSexualReproduction()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IAsexualReproduction<CreatureOfRepPicker> GetRandomAsexualReproduction()
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    /// <summary>
+    /// It will randomly choose wanted mean of reproduction
+    /// </summary>
+    interface IRandomReproductionPicker<Creature>
+    {
+        IAsexualReproduction<Creature> GetRandomAsexualReproduction();
+        ISexualReproduction<Creature> GetRandomSexualReproduction();
+        IMutation<Creature> GetRandomMutation();
     }
 }
