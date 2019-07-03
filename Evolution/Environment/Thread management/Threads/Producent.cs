@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace Evolution.Environment.Thread_management
+namespace Evolution
 {
     class Producent<Creature>
     {
@@ -28,10 +28,10 @@ namespace Evolution.Environment.Thread_management
         public void Run()
         {
             while (true)
-                ProcessOneCreature();
+                ProcessTwoCreatures();
         } 
 
-        private void ProcessOneCreature()
+        private void ProcessTwoCreatures()
         {
             Creature parent1 = GetCreaureOrFallAsleep();
             Creature parent2 = GetCreaureOrFallAsleep();

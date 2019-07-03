@@ -8,7 +8,7 @@ namespace Evolution
     class InterPool<Creature> //TODO implement InterPool
     {
 
-        public int Count { get; }
+        public bool IsEmpty { get; private set; }
 
         public void AddCreature(Creature creature)
         {
