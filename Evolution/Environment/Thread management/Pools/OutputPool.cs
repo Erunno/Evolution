@@ -12,6 +12,7 @@ namespace Evolution
 
         public Pulser IsNotEmpty = new Pulser();
 
+        public bool IsEmty => creatures.Count == 0;
 
         public void SaveRatedCreature(RatedCreature<Creature> creature)
         {
