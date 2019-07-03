@@ -151,7 +151,7 @@ namespace Evolution
         private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker> //TODO implement RandomReproductionPicker
         {
             EnvironmentOf<CreatureOfRepPicker> environment;
-            public Random rnd { get; }
+            Random rnd;
 
             public RandomReprodictionPicker(EnvironmentOf<CreatureOfRepPicker> environment, int seed)
             {
