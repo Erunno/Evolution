@@ -13,7 +13,7 @@ namespace Evolution
         void AddCreature(RatedCreature<Creature> ratedCreature);
 
         /// <summary>
-        /// Resturns set of best creature in its set
+        /// Returns set of best creatures in the set
         /// </summary>
         /// <param name="count">Count of creatures in enumerable</param>
         IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count);
