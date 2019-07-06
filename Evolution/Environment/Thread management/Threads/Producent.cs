@@ -92,7 +92,7 @@ namespace Evolution
             lock (SourcePool)
             {
                 while (SourcePool.IsEmpty)
-                    Monitor.Wait(SourcePool);
+                    ConnectionToConsument.JustSwichAndWait(SourcePool);
 
                 return SourcePool.GetNextCreature().TheCreature;
             }
