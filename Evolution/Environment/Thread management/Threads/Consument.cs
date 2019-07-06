@@ -7,11 +7,16 @@ namespace Evolution
 {
     class ConsumentRater<Creature>
     {
-        public OutputPool<Creature> outputPool { get; set; }
-        public InterPool<Creature> sourcePool { get; set; }
+        public OutputPool<Creature> TargetPool { get; set; }
+        public InterPool<Creature> SourcePool { get; set; }
 
         public Connection ConnectionToProducent { get; set; }
         private EnvironmentOf<Creature> myEnvironment;
+
+        public ConsumentRater(EnvironmentOf<Creature> environment)
+        {
+            myEnvironment = environment;
+        }
 
         /// <summary>
         /// Entry point of ConsumentRater
@@ -20,6 +25,9 @@ namespace Evolution
         /// </summary>
         public void Run()
         {
+            lock (ConnectionToProducent)
+                Monitor.Wait(ConnectionToProducent);
+
             while (true)
                 EvaluateOneCreature();
         }
@@ -30,20 +38,20 @@ namespace Evolution
 
             double fitnessValue = myEnvironment.Selector.FitnessFunction(creatureToEvaluate);
 
-            lock (outputPool)
-                outputPool.SaveRatedCreature(new RatedCreature<Creature>(creatureToEvaluate, fitnessValue));
+            lock (TargetPool)
+                TargetPool.SaveRatedCreature(new RatedCreature<Creature>(creatureToEvaluate, fitnessValue));
         }
 
         private Creature TryGetCreatureOrFallAsleep()
         {
             ConnectionToProducent.TryGiveOtherProcessingTime();
 
-            lock (sourcePool)
+            lock (SourcePool)
             {
-                while (sourcePool.IsEmpty)
-                    Monitor.Wait(sourcePool);
+                while (SourcePool.IsEmpty)
+                    Monitor.Wait(SourcePool);
 
-                return sourcePool.ExtractCreature();
+                return SourcePool.ExtractCreature();
             }
         }
     }
