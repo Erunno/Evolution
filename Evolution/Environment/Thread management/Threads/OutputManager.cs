@@ -24,6 +24,10 @@ namespace Evolution
             RatedCreature<Creature> creatureToProcess = TryGetCreatureOrFallAsleep();
 
             myEnvironment.Selector.AddCreature(creatureToProcess);
+
+            if (RatedCreatures.IsEmty)
+                lock (SourseIsEmtyPulser)
+                    Monitor.Pulse(SourseIsEmtyPulser);
         }
 
         private RatedCreature<Creature> TryGetCreatureOrFallAsleep()
@@ -31,7 +35,7 @@ namespace Evolution
             lock (RatedCreatures)
             {
                 while (RatedCreatures.IsEmty)
-                    Monitor.Wait(RatedCreatures.IsNotEmptyPulser);
+                    Monitor.Wait(RatedCreatures);
 
                 return RatedCreatures.GetCreature();
             }
