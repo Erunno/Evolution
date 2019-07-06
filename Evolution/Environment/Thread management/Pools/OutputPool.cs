@@ -10,8 +10,6 @@ namespace Evolution
 
         Queue<RatedCreature<Creature>> creatures = new Queue<RatedCreature<Creature>>();
 
-        public Pulser IsNotEmptyPulser = new Pulser();
-
         public bool IsEmty => creatures.Count == 0;
 
         public void SaveRatedCreature(RatedCreature<Creature> creature)
@@ -19,8 +17,8 @@ namespace Evolution
             creatures.Enqueue(creature);
 
             if (creatures.Count == 1)
-                lock (IsNotEmptyPulser)
-                    Monitor.Pulse(IsNotEmptyPulser);
+                lock (this)
+                    Monitor.Pulse(this);
         }
 
         public RatedCreature<Creature> GetCreature() => creatures.Count != 0 ? creatures.Dequeue() : throw new PoolIsEmptyException();
