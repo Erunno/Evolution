@@ -45,10 +45,26 @@ namespace Evolution
             {
                 if (SwichThread)
                 {
+                    SwichThread = false;
+
                     Monitor.Pulse(Lock);
                     Monitor.Wait(Lock);
                 }
             }
+        }
+
+        /// <summary>
+        /// Swiches to other thread and waits on watingObject
+        /// </summary>
+        public void JustSwichAndWait(object waitingObject)
+        {
+            SwichThread = false;
+
+            lock (Lock)
+                Monitor.Pulse(Lock);
+
+            lock (waitingObject)
+                Monitor.Wait(waitingObject);
         }
     }
 }
