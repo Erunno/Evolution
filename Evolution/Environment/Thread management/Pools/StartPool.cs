@@ -6,7 +6,7 @@ namespace Evolution
 {
     class StartPool<Creature>
     {
-        public bool IsEmpty { get; private set; }
+        public bool IsEmpty { get; private set; } = true;
 
         private IEnumerable<RatedCreature<Creature>> creaturesCollection;
         private IEnumerator<RatedCreature<Creature>> enumeratorOfCreatures;
