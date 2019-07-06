@@ -8,6 +8,15 @@ namespace Evolution
         public EnvironmentOf()
         {
             interval = new IntervalOfChildrenCount<Creature>(this);
+            MaximalNumOfRunningThreads = Environment.ProcessorCount;
+
+            throw new NotImplementedException();
+        }
+
+        public EnvironmentOf(int numOfThreads)
+        {
+            interval = new IntervalOfChildrenCount<Creature>(this);
+            MaximalNumOfRunningThreads = numOfThreads > 0 ? numOfThreads : throw new InvalidOperationException();
 
             throw new NotImplementedException();
         }
@@ -62,11 +71,11 @@ namespace Evolution
         private IntervalOfChildrenCount<Creature> interval;
 
         /// <summary>
-        /// It is initialized with the number of logical cores
-        /// 
         /// Means number of thread computing evolution i.e. thread managing other threads can be running
+        /// 
+        /// If not given, it will be number of logical cores
         /// </summary>
-        public int MaximalNumOfRunningThreads { get; set; } = System.Environment.ProcessorCount;
+        public int MaximalNumOfRunningThreads { get; }
 
         public int NumOfGenerationSoFar { get; private set; }
 
@@ -142,11 +151,6 @@ namespace Evolution
 
         internal IRandomReproductionPicker<Creature> GetRandomReproductionPicker()
             => new RandomReprodictionPicker<Creature>(this, rnd.Next());
-
-        private interface IRndRepPickerGetter<T>
-        {
-            RandomReprodictionPicker<T> GetRandomReprodictionPicker(EnvironmentOf<T> environment, int rndSeed);
-        }
 
         private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker> //TODO implement RandomReproductionPicker
         {
