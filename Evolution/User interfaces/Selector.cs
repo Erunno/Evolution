@@ -26,7 +26,7 @@ namespace Evolution
     /// </summary>
     public delegate double FitnessFunctionDelegate<Creature>(Creature creture);
 
-    class DefaultSelector<Creature> : ISelector<Creature> //ToDo implement default selector
+    class DefaultSelector<Creature> : ISelector<Creature>
     {
         public FitnessFunctionDelegate<Creature> FitnessFunction { get; }
 
