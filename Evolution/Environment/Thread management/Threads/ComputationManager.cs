@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Utils;
 using System.Threading;
 
 namespace Evolution
@@ -38,10 +39,15 @@ namespace Evolution
 
         private Creature GetForeFather()
         {
-            foreach (var foreFather in myEnvironment.Selector.GetBestCreatures(1))
-                return foreFather.TheCreature;
+            try
+            {
+                return myEnvironment.Selector.PeekBestCreature().TheCreature;
+            }
+            catch(EmptyHeapExeption)
+            {
+                throw new NoForeFatherException();
+            }
 
-            throw new NoForeFatherException();
         }
 
         public void RunOneGeneration()
