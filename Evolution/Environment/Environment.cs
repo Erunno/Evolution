@@ -152,7 +152,7 @@ namespace Evolution
         internal IRandomReproductionPicker<Creature> GetRandomReproductionPicker()
             => new RandomReprodictionPicker<Creature>(this, rnd.Next());
 
-        private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker> //TODO implement RandomReproductionPicker
+        private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker>
         {
             EnvironmentOf<CreatureOfRepPicker> environment;
             Random rnd;
@@ -165,17 +165,20 @@ namespace Evolution
 
             public IMutation<CreatureOfRepPicker> GetRandomMutation()
             {
-                throw new NotImplementedException();
+                int randomIndex = rnd.Next(0, environment.mutations.Count);
+                return environment.mutations[randomIndex];
             }
 
             public ISexualReproduction<CreatureOfRepPicker> GetRandomSexualReproduction()
             {
-                throw new NotImplementedException();
+                int randomIndex = rnd.Next(0, environment.sexualReproductions.Count);
+                return environment.sexualReproductions[randomIndex];
             }
 
             public IAsexualReproduction<CreatureOfRepPicker> GetRandomAsexualReproduction()
             {
-                throw new NotImplementedException();
+                int randomIndex = rnd.Next(0, environment.asexualReproductions.Count);
+                return environment.asexualReproductions[randomIndex];
             }
 
             public int GetNumOfChildren() => rnd.Next(environment.interval.From, environment.interval.To);
