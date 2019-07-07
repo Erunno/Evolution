@@ -79,11 +79,24 @@ namespace Evolution
 
         public int NumOfGenerationSoFar { get; private set; }
 
+        private double _mutationRate = 0.05;
         /// <summary>
         /// Determines how aggressive mutations are. Can be changed automatically to reach the best result possible.
         /// It is in range [0,1]
         /// </summary>
-        public double MutationRate { get; set; }
+        public double MutationRate {
+            get => _mutationRate;
+            set
+            {
+                if (value < 0 || 1 > value)
+                    throw new UnvalidMutationRateException();
+
+                foreach (var mutation in mutations)
+                    mutation.MutationRate = value;
+
+                _mutationRate = value;
+            }
+        }
 
         /// <summary>
         /// Creates and sets new default selector using fitness function in argument.
@@ -120,6 +133,7 @@ namespace Evolution
         /// </summary>
         public void AddMutation(IMutation<Creature> mutation)
         {
+            mutation.MutationRate = MutationRate;
             mutations.Add(mutation);
         }
 
@@ -222,4 +236,6 @@ namespace Evolution
             To = meanValueOfChildren + Variation + 1; //upper bound is exclusive
         }
     }
+
+    class UnvalidMutationRateException : Exception { }
 }
