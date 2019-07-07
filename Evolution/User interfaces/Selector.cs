@@ -19,6 +19,8 @@ namespace Evolution
         IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count);
 
         FitnessFunctionDelegate<Creature> FitnessFunction { get; }
+
+        RatedCreature<Creature> PeekBestCreature();
     }
 
     /// <summary>
@@ -92,7 +94,12 @@ namespace Evolution
         {
             for (int i = 0; i < heap.Count - newSize; i++)
                 heap.ExtractMin();
-        } 
+        }
+
+        public RatedCreature<Creature> PeekBestCreature()
+        {
+            return heap.FindAndPeekMax();
+        }
     }
 
     public class NotEnoughElementsException : Exception { }
