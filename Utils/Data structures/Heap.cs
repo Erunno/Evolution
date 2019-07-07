@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Utils
 {
@@ -20,6 +21,14 @@ namespace Utils
         /// Returns max element of heap, but dont remove it
         /// </summary>
         public T PeekMin() => Count != 0 ? heap[0] : throw new EmptyHeapExeption();
+
+        public T FindAndPeekMax()
+        {
+            if (Count == 0)
+                throw new EmptyHeapExeption();
+
+            return heap.Take(Count).Max();
+        }
 
         public bool IsFull => Count == heap.Length;
 
