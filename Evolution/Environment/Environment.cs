@@ -24,21 +24,46 @@ namespace Evolution
             MaximalNumOfRunningThreads = numOfThreads > 0 ? numOfThreads : throw new InvalidOperationException($"Argument {nameof(numOfThreads)} have to be positive number");
         }
 
-        private ISelector<Creature> _selector;
         /// <summary>
         /// Is used to select best of each generation
         /// It must not be emty - at least one Creture have to be present
         /// </summary>
-        public ISelector<Creature> Selector
-        {
-            get => _selector;
-            set
-            {
-                _selector = value;
+        public ISelector<Creature> Selector { get; set; }
 
-                if (computationManager == null)
-                    computationManager = new ComputationManager<Creature>(this);
-            }
+        /// <summary>
+        /// Creates new fitness function.
+        /// 
+        /// (Every thread gets one fitness function that means that fitness function doesnt have to be static)
+        /// </summary>
+        public IFitnessFunctionFactory<Creature> FitnessFunctionFactory { get; set; } //todo create new method which will manipulate with properties like this one
+            //todo when user changes this property computation manager should be noticed
+
+
+        /// <summary>
+        /// Creates and sets default implementation of FitnessFunctionFactory
+        /// </summary>
+        /// <param name="provider">Is function which creates new delegate</param>
+        public void CreateAndSetDefaultFitnessFunctionFactory(FitnessFunctionProvider<Creature> provider)
+        {
+            FitnessFunctionFactory = new DefaultFitnessFunctionFactory<Creature>(provider);
+
+            UpdateComputationManager();
+        }
+
+        /// <summary>
+        /// Creates and sets default implementation of FitnessFunctionFactory
+        /// </summary>
+        /// <param name="fitnessFunction">It should be static as it will be used in many threads without locking</param>
+        public void CreateAndSetDefaultFitnessFunctionFactory(FitnessFunctionDelegate<Creature> fitnessFunction)
+        {
+            FitnessFunctionFactory = new DefaultFitnessFunctionFactory<Creature>(fitnessFunction);
+
+            UpdateComputationManager();
+        }
+
+        private void UpdateComputationManager()
+        {
+            throw new NotImplementedException(); //todo implement updateComputationManager - and its method to renew fitness functions 
         }
 
         Random rnd = new Random();
@@ -116,7 +141,8 @@ namespace Evolution
         /// Creates and sets new default selector using fitness function in argument.
         /// First Creature is needed to start evolution
         /// </summary>
-        /// <param name="newBestCretureFound"> Is called in case that new best creature is found </param>
+        /// <param name="fitnessFunction">Will be used from different threads in same time</param>
+        /// <param name="newBestCretureFound">Is called in case that new best creature is found </param>
         public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, NewBestCretureFoundEventDelegate<Creature> newBestCretureFound, Creature foreFather)
         {
             RatedCreature<Creature> ratedForeFather = new RatedCreature<Creature>(foreFather, fitnessFunction(foreFather));
@@ -174,6 +200,7 @@ namespace Evolution
         /// Before calling this method it is nessesary that following components are present:
         ///     Mandatory (throws exeption...):
         ///     Selector (or at least fitness function passed to "CreateAndSetDefaultSelector")
+        ///     FitnessFunctionFactory (or at least call CreateAndSetDefaultFitnessFunctionFactory with desired parametres)
         ///     Every mean of reproduction have to be provided
         ///         i.e. mutation, sexual reproduction and asexual repr.
         /// 
