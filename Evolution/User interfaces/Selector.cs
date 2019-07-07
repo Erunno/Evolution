@@ -34,15 +34,27 @@ namespace Evolution
 
         HeapOfMaximalSize<RatedCreature<Creature>> heap;
 
-        public DefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, int sizeOfSetOfReturnedCreatures)
+        public NewBestCretureFoundEventDelegate<Creature> NewBestCretureFound { get; set; }
+
+        public DefaultSelector(
+            FitnessFunctionDelegate<Creature> fitnessFunction, NewBestCretureFoundEventDelegate<Creature> newBestFound, 
+            RatedCreature<Creature> foreFather, int sizeOfSetOfReturnedCreatures)
         {
             FitnessFunction = fitnessFunction;
+            NewBestCretureFound = newBestFound;
+
             heap = new HeapOfMaximalSize<RatedCreature<Creature>>(sizeOfSetOfReturnedCreatures);
             bestCreatures = new RatedCreature<Creature>[sizeOfSetOfReturnedCreatures];
+
+            bestCreature = foreFather;
+            AddCreature(foreFather);
         }
 
         public void AddCreature(RatedCreature<Creature> newCreature)
         {
+            if (IsBetterThanBest(newCreature))
+                HandleNewBest(newCreature);
+
             if (heap.IsFull)
             {
                 if (newCreature.CompareTo(heap.PeekMin()) > 0) //if newCreature is better than the worst of creatures in heap
@@ -53,6 +65,17 @@ namespace Evolution
             }
             else
                 heap.Insert(newCreature);
+        }
+
+        private RatedCreature<Creature> bestCreature;
+
+        private bool IsBetterThanBest(RatedCreature<Creature> creature)
+            => bestCreature.CompareTo(creature) < 0; 
+
+        private void HandleNewBest(RatedCreature<Creature> newBestCreature)
+        {
+            bestCreature = newBestCreature;
+            NewBestCretureFound?.Invoke(newBestCreature.TheCreature, newBestCreature.FitnessValue);
         }
 
         private RatedCreature<Creature>[] bestCreatures;
@@ -98,7 +121,7 @@ namespace Evolution
 
         public RatedCreature<Creature> PeekBestCreature()
         {
-            return heap.FindAndPeekMax();
+            return bestCreature;
         }
     }
 
