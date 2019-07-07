@@ -18,8 +18,6 @@ namespace Evolution
         /// <param name="count">Count of creatures in enumerable</param>
         IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count);
 
-        FitnessFunctionDelegate<Creature> FitnessFunction { get; }
-
         RatedCreature<Creature> PeekBestCreature();
     }
 
@@ -30,8 +28,6 @@ namespace Evolution
 
     class DefaultSelector<Creature> : ISelector<Creature>
     {
-        public FitnessFunctionDelegate<Creature> FitnessFunction { get; }
-
         HeapOfMaximalSize<RatedCreature<Creature>> heap;
 
         public NewBestCretureFoundEventDelegate<Creature> NewBestCretureFound { get; set; }
