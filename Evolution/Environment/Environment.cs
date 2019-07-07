@@ -5,27 +5,41 @@ namespace Evolution
 {
     class EnvironmentOf<Creature>
     {
+        /// <summary>
+        /// Nuber of threads is defautly set to number of logical cores
+        /// </summary>
         public EnvironmentOf()
         {
             interval = new IntervalOfChildrenCount<Creature>(this);
             MaximalNumOfRunningThreads = Environment.ProcessorCount;
-
-            throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Contructor with custom number of threads.
+        /// numOfThreads have to be positive number.
+        /// </summary>
         public EnvironmentOf(int numOfThreads)
         {
             interval = new IntervalOfChildrenCount<Creature>(this);
-            MaximalNumOfRunningThreads = numOfThreads > 0 ? numOfThreads : throw new InvalidOperationException();
-
-            throw new NotImplementedException();
+            MaximalNumOfRunningThreads = numOfThreads > 0 ? numOfThreads : throw new InvalidOperationException($"Argument {nameof(numOfThreads)} have to be positive number");
         }
 
+        private ISelector<Creature> _selector;
         /// <summary>
         /// Is used to select best of each generation
         /// It must not be emty - at least one Creture have to be present
         /// </summary>
-        public ISelector<Creature> Selector { get; set; }
+        public ISelector<Creature> Selector
+        {
+            get => _selector;
+            set
+            {
+                _selector = value;
+
+                if (computationManager == null)
+                    computationManager = new ComputationManager<Creature>(this);
+            }
+        }
 
         Random rnd = new Random();
 
@@ -75,9 +89,9 @@ namespace Evolution
         /// 
         /// If not given, it will be number of logical cores
         /// </summary>
-        public int MaximalNumOfRunningThreads { get; }
+        public int MaximalNumOfRunningThreads { get; } //todo user can change it
 
-        public int NumOfGenerationSoFar { get; private set; }
+        public int NumOfGenerationSoFar { get; private set; } = 0;
 
         private double _mutationRate = 0.05;
         /// <summary>
@@ -102,15 +116,22 @@ namespace Evolution
         /// Creates and sets new default selector using fitness function in argument.
         /// First Creature is needed to start evolution
         /// </summary>
-        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, Creature foreFather)
+        /// <param name="newBestCretureFound"> Is called in case that new best creature is found </param>
+        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, NewBestCretureFoundEventDelegate<Creature> newBestCretureFound, Creature foreFather)
         {
-            Selector = new DefaultSelector<Creature>(fitnessFunction, NumberOfSurvivals);
+            RatedCreature<Creature> ratedForeFather = new RatedCreature<Creature>(foreFather, fitnessFunction(foreFather));
+
+            Selector = new DefaultSelector<Creature>(fitnessFunction, newBestCretureFound, ratedForeFather, NumberOfSurvivals);
         }
 
         /// <summary>
-        /// Is called when new best creature is found
+        /// Creates and sets new default selector using fitness function in argument.
+        /// First Creature is needed to start evolution
         /// </summary>
-        public NewBestCretureFoundEventDelegate<Creature> NewBestFoundEvent { get; set; } = (x) => { };
+        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, Creature foreFather)
+        {
+            CreateAndSetDefaultSelector(fitnessFunction, null, foreFather);
+        }
 
         /// <summary>
         /// Adds new way of asexual reproduction
@@ -146,22 +167,37 @@ namespace Evolution
             return Selector.GetBestCreatures(count);
         }
 
+        private ComputationManager<Creature> computationManager;
+
         /// <summary>
         /// Runs evolution 
         /// Before calling this method it is nessesary that following components are present:
-        ///     Mandatory (throws exeption):
+        ///     Mandatory (throws exeption...):
         ///     Selector (or at least fitness function passed to "CreateAndSetDefaultSelector")
-        ///     
+        ///     Every mean of reproduction have to be provided
+        ///         i.e. mutation, sexual reproduction and asexual repr.
+        /// 
         ///     Optional (but good idea to set):
-        ///     NewBestFoundEvent
         ///     SizeOfPupulation
         ///     NumberOfSurvivals
-        ///     MaximalNumOfRunningThreads
         /// </summary>
         public void RunEvolution(int numOfSteps)
         {
-            throw new NotImplementedException();
+            if (Selector == null)
+                throw new UnassignedSelectorException();
+
+            if (!MeansOfReproductionAreNotEmpty()) //ToDo user dont have to implement all of it
+                throw new SomeMeanOfReproductionHasNotBeenProvidedException();
+
+            for (int i = 0; i < numOfSteps; i++)
+            {
+                computationManager.RunOneGeneration();
+                NumOfGenerationSoFar++;
+            }
         }
+
+        private bool MeansOfReproductionAreNotEmpty()
+            => mutations.Count != 0 && sexualReproductions.Count != 0 && asexualReproductions.Count != 0;
 
         internal IRandomReproductionPicker<Creature> GetRandomReproductionPicker()
             => new RandomReprodictionPicker<Creature>(this, rnd.Next());
@@ -238,4 +274,6 @@ namespace Evolution
     }
 
     class UnvalidMutationRateException : Exception { }
+    class UnassignedSelectorException : Exception { } 
+    class SomeMeanOfReproductionHasNotBeenProvidedException : Exception { }
 }
