@@ -7,131 +7,106 @@ namespace Evolution
 {
     class ComputationManager<Creature>
     {
-        private List<PairPC<Creature>> ActiveJobs;
-
-        private List<PairPC<Creature>> ActiveProducents = new List<PairPC<Creature>>();
-        private List<PairPC<Creature>> ActiveConsuments = new List<PairPC<Creature>>();
-
-        private StartPool<Creature> startPool;
-        private InterPool<Creature> interPool;
-        private OutputPool<Creature> outputPool;
+        private List<ThreadJobPair<Creature>> activeJobs;
 
         private EnvironmentOf<Creature> myEnvironment;
 
-        private OutputManager<Creature> outputManager;
-        private Thread threadOfOutputManager;
+        private StartPool<Creature> startPool;
 
         public ComputationManager(EnvironmentOf<Creature> environment)
         {
             myEnvironment = environment;
 
-            CreateOutputManagerAndHisThread();
-            threadOfOutputManager.Start();
+            Creature foreFather = GetForeFather();
 
-            CreatePools();
-
-            CreateJobs();
-            StartJobs();
+            CreateComputationCores(foreFather);
         }
 
-        private void CreateJobs()
+        private void CreateComputationCores(Creature foreFather)
         {
-            ActiveJobs = new List<PairPC<Creature>>();
+            activeJobs = new List<ThreadJobPair<Creature>>();
+
             for (int i = 0; i < myEnvironment.MaximalNumOfRunningThreads; i++)
             {
-                Producent<Creature> prod = new Producent<Creature>(myEnvironment);
-                prod.SourcePool = startPool;
-                prod.TargetPool = interPool;
+                ComputationCore<Creature> core = new ComputationCore<Creature>(myEnvironment, startPool, foreFather);
+                core.WorkHasBeenDoneDelegate = SourseDriedOutHandler;
 
-                ConsumentRater<Creature> cons = new ConsumentRater<Creature>(myEnvironment);
-                cons.SourcePool = interPool;
-                cons.TargetPool = outputPool;
-
-                ActiveJobs.Add(new PairPC<Creature>(prod, cons));
+                ThreadJobPair<Creature> threadJob = new ThreadJobPair<Creature>(core);
+                activeJobs.Add(threadJob);
             }
         }
 
-        private void CreatePools()
+        private Creature GetForeFather()
         {
-            startPool = new StartPool<Creature>();
-            interPool = new InterPool<Creature>();
-            outputPool = new OutputPool<Creature>();
+            foreach (var foreFather in myEnvironment.Selector.GetBestCreatures(1))
+                return foreFather.TheCreature;
+
+            throw new NoForeFatherException();
         }
 
-        private void CreateOutputManagerAndHisThread()
+        public void RunOneGeneration()
         {
-            outputManager = new OutputManager<Creature>();
-            outputManager.myEnvironment = myEnvironment;
-            outputManager.RatedCreatures = outputPool;
+            InitNewRun();
 
-            threadOfOutputManager = new Thread(outputManager.Run);
+            FillStartPool();
+            WakeUpAllThreads();
+
+            WaitUntilJobIsDone();
         }
 
-        private void StartJobs()
+        private void InitNewRun()
         {
-            MarkAllAsProducents();
-
-            foreach (var pair in ActiveJobs)
-            {
-                pair.ConsumerThread.Start();
-                pair.ProducentThread.Start();
-            }
+            workingThreads = activeJobs.Count;
         }
 
-        private void MarkAllAsProducents()
+        private void FillStartPool()
         {
-            ActiveConsuments.Clear();
+            IEnumerable<RatedCreature<Creature>> bestCreatures = myEnvironment.Selector.GetBestCreatures(myEnvironment.NumberOfSurvivals);
 
-            foreach (var pair in ActiveJobs)
-                ActiveProducents.Add(pair);
-        }
-
-        public void RunOneGeneration(IEnumerable<RatedCreature<Creature>> bestCreatures)
-        {
-            MarkAllAsProducents();
             startPool.FillWithNewCreatures(bestCreatures);
-
-            lock (startPool)
-                Monitor.PulseAll(startPool); //wake up all producents
-
-            ManageProducentsAndConsuments();
-
-            WaitToTheEnd();
         }
 
-        private void ManageProducentsAndConsuments()
+        private void WakeUpAllThreads()
         {
-            throw new NotImplementedException();
+            foreach (var threadJob in activeJobs)
+                lock (threadJob.ComputationCore.BackToWorkPulser)
+                    Monitor.Pulse(threadJob.ComputationCore.BackToWorkPulser);
         }
 
-        private void WaitToTheEnd()
+        private void WaitUntilJobIsDone()
         {
+            lock (JobIsDonePulser)
+                Monitor.Wait(JobIsDonePulser);
+        }
 
+        private Pulser JobIsDonePulser { get; } = new Pulser();
+        private int workingThreads;
+
+        private void SourseDriedOutHandler()
+        {
+            lock (JobIsDonePulser)
+            {
+                workingThreads--;
+
+                if (workingThreads == 0)
+                    Monitor.PulseAll(JobIsDonePulser);
+            }
         }
     }
 
-    class PairPC<Creature>
+    class ThreadJobPair<Creature>
     {
-        public Producent<Creature> Producent { get; }
-        public Thread ProducentThread { get; }
+        public Thread Thread { get; }
+        public ComputationCore<Creature> ComputationCore { get; }
 
-        public ConsumentRater<Creature> Consument { get; }
-        public Thread ConsumerThread { get; }
-
-        public Connection Connection { get; }
-
-        public PairPC(Producent<Creature> prod, ConsumentRater<Creature> cons)
+        public ThreadJobPair(ComputationCore<Creature> computationCore)
         {
-            Producent = prod;
-            Consument = cons;
-            Connection = new Connection();
+            ComputationCore = computationCore;
 
-            Producent.ConnectionToConsument = Connection;
-            Consument.ConnectionToProducent = Connection;
-
-            ConsumerThread = new Thread(Consument.Run);
-            ProducentThread = new Thread(Producent.Run);
+            Thread = new Thread(ComputationCore.Run);
+            Thread.Start();
         }
-
     }
+
+    class NoForeFatherException : Exception { }
 }
