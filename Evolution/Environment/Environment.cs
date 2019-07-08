@@ -145,23 +145,27 @@ namespace Evolution
         /// <summary>
         /// Creates and sets new default selector using fitness function in argument.
         /// First Creature is needed to start evolution
+        /// 
+        /// Store of disposed creatures dont saves creatures defautly (flag StoreCratures have to be set to do so)
         /// </summary>
         /// <param name="fitnessFunction">Will be used from different threads in same time</param>
         /// <param name="newBestCretureFound">Is called in case that new best creature is found </param>
-        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, NewBestCretureFoundEventDelegate<Creature> newBestCretureFound, Creature foreFather)
+        public void CreateAndSetDefaultSelector(NewBestCretureFoundEventDelegate<Creature> newBestCretureFound, Creature foreFather)
         {
-            RatedCreature<Creature> ratedForeFather = new RatedCreature<Creature>(foreFather, fitnessFunction(foreFather));
+            RatedCreature<Creature> ratedForeFather = new RatedCreature<Creature>(foreFather, fitnessFunction(foreFather)); //todo solve lack of fitnes function
 
-            Selector = new DefaultSelector<Creature>(fitnessFunction, newBestCretureFound, ratedForeFather, NumberOfSurvivals);
+            Selector = new DefaultSelector<Creature>(newBestCretureFound, ratedForeFather, NumberOfSurvivals);
         }
 
         /// <summary>
         /// Creates and sets new default selector using fitness function in argument.
         /// First Creature is needed to start evolution
+        /// 
+        /// Store of disposed creatures dont saves creatures defautly (flag StoreCratures have to be set to do so)
         /// </summary>
-        public void CreateAndSetDefaultSelector(FitnessFunctionDelegate<Creature> fitnessFunction, Creature foreFather)
+        public void CreateAndSetDefaultSelector(Creature foreFather)
         {
-            CreateAndSetDefaultSelector(fitnessFunction, null, foreFather);
+            CreateAndSetDefaultSelector(null, foreFather);
         }
 
         /// <summary>
