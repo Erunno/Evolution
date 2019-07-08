@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils", "Utils\Utils.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvolutionTests", "EvolutionTests\EvolutionTests.csproj", "{698721E4-1591-4F43-A4AB-65318F022FE7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTSPSolver", "SimpleTSPSolver\SimpleTSPSolver.csproj", "{8EA1BB64-EB6F-4F3A-8224-BC4D27082FF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{698721E4-1591-4F43-A4AB-65318F022FE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{698721E4-1591-4F43-A4AB-65318F022FE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{698721E4-1591-4F43-A4AB-65318F022FE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EA1BB64-EB6F-4F3A-8224-BC4D27082FF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EA1BB64-EB6F-4F3A-8224-BC4D27082FF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EA1BB64-EB6F-4F3A-8224-BC4D27082FF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EA1BB64-EB6F-4F3A-8224-BC4D27082FF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
