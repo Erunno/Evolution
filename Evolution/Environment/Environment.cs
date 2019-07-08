@@ -35,9 +35,13 @@ namespace Evolution
         /// 
         /// (Every thread gets one fitness function that means that fitness function doesnt have to be static)
         /// </summary>
-        public IFitnessFunctionFactory<Creature> FitnessFunctionFactory { get; set; } //todo create new method which will manipulate with properties like this one
-            //todo when user changes this property computation manager should be noticed
+        public IFitnessFunctionFactory<Creature> FitnessFunctionFactory { get; private set; } 
 
+        public void SetFitnessFunctinonFactory(IFitnessFunctionFactory<Creature> newFitnessFunctionFactory)
+        {
+            FitnessFunctionFactory = newFitnessFunctionFactory;
+            UpdateComputationManager();
+        }
 
         /// <summary>
         /// Creates and sets default implementation of FitnessFunctionFactory
@@ -45,9 +49,7 @@ namespace Evolution
         /// <param name="provider">Is function which creates new delegate</param>
         public void CreateAndSetDefaultFitnessFunctionFactory(FitnessFunctionProvider<Creature> provider)
         {
-            FitnessFunctionFactory = new DefaultFitnessFunctionFactory<Creature>(provider);
-
-            UpdateComputationManager();
+            SetFitnessFunctinonFactory(new DefaultFitnessFunctionFactory<Creature>(provider));
         }
 
         /// <summary>
@@ -56,14 +58,15 @@ namespace Evolution
         /// <param name="fitnessFunction">It should be static as it will be used in many threads without locking</param>
         public void CreateAndSetDefaultFitnessFunctionFactory(FitnessFunctionDelegate<Creature> fitnessFunction)
         {
-            FitnessFunctionFactory = new DefaultFitnessFunctionFactory<Creature>(fitnessFunction);
-
-            UpdateComputationManager();
+            SetFitnessFunctinonFactory(new DefaultFitnessFunctionFactory<Creature>(fitnessFunction));
         }
 
         private void UpdateComputationManager()
         {
-            throw new NotImplementedException(); //todo implement updateComputationManager - and its method to renew fitness functions 
+            if (computationManager == null)
+                computationManager = new ComputationManager<Creature>(this);
+
+            computationManager.UpdateFitnessFunction();
         }
 
         Random rnd = new Random();
@@ -88,23 +91,23 @@ namespace Evolution
             }
         }
 
-        private int _numOfSurvivals = 100;
         /// <summary>
         /// Maximal number of survivals from generation n to generation n+1
-        /// 
+        /// </summary>
+        public int NumberOfSurvivals { get; private set; } = 100;
+
+        /// <summary>
         /// Setting new value can mean memory allocation (in case of default selector)
         /// therefore it is not good idea doing it often
         /// </summary>
-        public int NumberOfSurvivals {
-            get => _numOfSurvivals;
-            set
-            {
-                if (Selector.GetType() == typeof(DefaultSelector<Creature>))
-                    ((DefaultSelector<Creature>)Selector).ChangeSizeOfHeap(value);
+        /// <param name="newNumberOfSurvivals"></param>
+        public void SetNumberOfSurvivals(int newNumberOfSurvivals)
+        {
+            if (Selector.GetType() == typeof(DefaultSelector<Creature>))
+                ((DefaultSelector<Creature>)Selector).ChangeSizeOfHeap(newNumberOfSurvivals);
 
-                _numOfSurvivals = value;
-                interval.RecomputeInterval();
-            }
+            NumberOfSurvivals = newNumberOfSurvivals;
+            interval.RecomputeInterval();
         }
 
         private IntervalOfChildrenCount<Creature> interval;
@@ -118,23 +121,25 @@ namespace Evolution
 
         public int NumOfGenerationSoFar { get; private set; } = 0;
 
-        private double _mutationRate = 0.05;
         /// <summary>
         /// Determines how aggressive mutations are. Can be changed automatically to reach the best result possible.
         /// It is in range [0,1]
         /// </summary>
-        public double MutationRate {
-            get => _mutationRate;
-            set
-            {
-                if (value < 0 || 1 > value)
-                    throw new UnvalidMutationRateException();
+        public double MutationRate { get; private set; } = 0.05;
 
-                foreach (var mutation in mutations)
-                    mutation.MutationRate = value;
+        /// <summary>
+        /// Sets new rate to all of mutations which were provided
+        /// </summary>
+        /// <param name="newRate">Have to be in interval [0,1] (inclusive)</param>
+        public void SetMutationRate(int newRate)
+        {
+            if (newRate < 0 || 1 > newRate)
+                throw new UnvalidMutationRateException();
 
-                _mutationRate = value;
-            }
+            foreach (var mutation in mutations)
+                mutation.MutationRate = newRate;
+
+            MutationRate = newRate;
         }
 
         /// <summary>
