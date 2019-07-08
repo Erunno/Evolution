@@ -11,6 +11,8 @@ namespace Evolution
 
         private EnvironmentOf<Creature> myEnvironment;
 
+        public FitnessFunctionDelegate<Creature> CurrentFitnessFunction;
+
         public Pulser BackToWorkPulser { get; } = new Pulser();
         public bool IsWorking { get; private set; } = false;
 
@@ -18,6 +20,7 @@ namespace Evolution
 
         public ComputationCore(EnvironmentOf<Creature> environment, StartPool<Creature> startPool, Creature foreFather)
         {
+            myEnvironment = environment;
             mutationManager = new MutationManager<Creature>(environment, startPool, foreFather);
         }
 
@@ -59,7 +62,7 @@ namespace Evolution
 
         private RatedCreature<Creature> EvaluateCreature(Creature creature)
         {
-            double fitnessValue = myEnvironment.Selector.FitnessFunction(creature);
+            double fitnessValue = CurrentFitnessFunction(creature);
 
             return new RatedCreature<Creature>(creature, fitnessValue);
         }

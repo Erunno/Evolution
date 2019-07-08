@@ -50,6 +50,12 @@ namespace Evolution
 
         }
 
+        public void UpdateFitnessFunction()
+        {
+            foreach (var core in activeJobs)
+                core.ComputationCore.CurrentFitnessFunction = myEnvironment.FitnessFunctionFactory.CreateNewFitnessFunctionDelegate();
+        }
+
         public void RunOneGeneration()
         {
             InitNewRun();
