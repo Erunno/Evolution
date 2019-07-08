@@ -8,20 +8,19 @@ namespace Evolution
         /// <summary>
         /// Nuber of threads is defautly set to number of logical cores
         /// </summary>
-        public EnvironmentOf()
+        public EnvironmentOf(StartingInfo<Creature> startingInfo)
         {
-            interval = new IntervalOfChildrenCount<Creature>(this);
-            MaximalNumOfRunningThreads = Environment.ProcessorCount;
-        }
+            Selector = startingInfo.GetSelector();
+            FitnessFunctionFactory = startingInfo.GetFitnessFunctionFactory();
 
-        /// <summary>
-        /// Contructor with custom number of threads.
-        /// numOfThreads have to be positive number.
-        /// </summary>
-        public EnvironmentOf(int numOfThreads)
-        {
             interval = new IntervalOfChildrenCount<Creature>(this);
-            MaximalNumOfRunningThreads = numOfThreads > 0 ? numOfThreads : throw new InvalidOperationException($"Argument {nameof(numOfThreads)} have to be positive number");
+
+            NumberOfSurvivals = startingInfo.NumberOfSurvivals;
+            SizeOfPupulation = startingInfo.SizeOfPopulation;
+            MutationRate = startingInfo.MutationRate;
+            MaximalNumOfRunningThreads = startingInfo.NumberOfRunningThreads;
+
+            CreateOrUpdateComputationManager();
         }
 
         /// <summary>
@@ -40,28 +39,10 @@ namespace Evolution
         public void SetFitnessFunctinonFactory(IFitnessFunctionFactory<Creature> newFitnessFunctionFactory)
         {
             FitnessFunctionFactory = newFitnessFunctionFactory;
-            UpdateComputationManager();
+            CreateOrUpdateComputationManager();
         }
 
-        /// <summary>
-        /// Creates and sets default implementation of FitnessFunctionFactory
-        /// </summary>
-        /// <param name="provider">Is function which creates new delegate</param>
-        public void CreateAndSetDefaultFitnessFunctionFactory(FitnessFunctionProvider<Creature> provider)
-        {
-            SetFitnessFunctinonFactory(new DefaultFitnessFunctionFactory<Creature>(provider));
-        }
-
-        /// <summary>
-        /// Creates and sets default implementation of FitnessFunctionFactory
-        /// </summary>
-        /// <param name="fitnessFunction">It should be static as it will be used in many threads without locking</param>
-        public void CreateAndSetDefaultFitnessFunctionFactory(FitnessFunctionDelegate<Creature> fitnessFunction)
-        {
-            SetFitnessFunctinonFactory(new DefaultFitnessFunctionFactory<Creature>(fitnessFunction));
-        }
-
-        private void UpdateComputationManager()
+        private void CreateOrUpdateComputationManager()
         {
             if (computationManager == null)
                 computationManager = new ComputationManager<Creature>(this);
@@ -143,32 +124,6 @@ namespace Evolution
         }
 
         /// <summary>
-        /// Creates and sets new default selector using fitness function in argument.
-        /// First Creature is needed to start evolution
-        /// 
-        /// Store of disposed creatures dont saves creatures defautly (flag StoreCratures have to be set to do so)
-        /// </summary>
-        /// <param name="fitnessFunction">Will be used from different threads in same time</param>
-        /// <param name="newBestCretureFound">Is called in case that new best creature is found </param>
-        public void CreateAndSetDefaultSelector(NewBestCretureFoundEventDelegate<Creature> newBestCretureFound, Creature foreFather)
-        {
-            RatedCreature<Creature> ratedForeFather = new RatedCreature<Creature>(foreFather, fitnessFunction(foreFather)); //todo solve lack of fitnes function
-
-            Selector = new DefaultSelector<Creature>(newBestCretureFound, ratedForeFather, NumberOfSurvivals);
-        }
-
-        /// <summary>
-        /// Creates and sets new default selector using fitness function in argument.
-        /// First Creature is needed to start evolution
-        /// 
-        /// Store of disposed creatures dont saves creatures defautly (flag StoreCratures have to be set to do so)
-        /// </summary>
-        public void CreateAndSetDefaultSelector(Creature foreFather)
-        {
-            CreateAndSetDefaultSelector(null, foreFather);
-        }
-
-        /// <summary>
         /// Adds new way of asexual reproduction
         /// </summary>
         public void AddAsexualReproduction(IAsexualReproduction<Creature> asexualReproduction)
@@ -222,7 +177,7 @@ namespace Evolution
             if (Selector == null)
                 throw new UnassignedSelectorException();
 
-            if (!MeansOfReproductionAreNotEmpty()) //ToDo user dont have to implement all of it
+            if (!EveryMeanOfReproductionIsNotEmpty()) //ToDo user dont have to implement all of it
                 throw new SomeMeanOfReproductionHasNotBeenProvidedException();
 
             for (int i = 0; i < numOfSteps; i++)
@@ -232,18 +187,18 @@ namespace Evolution
             }
         }
 
-        private bool MeansOfReproductionAreNotEmpty()
+        private bool EveryMeanOfReproductionIsNotEmpty()
             => mutations.Count != 0 && sexualReproductions.Count != 0 && asexualReproductions.Count != 0;
 
         internal IRandomReproductionPicker<Creature> GetRandomReproductionPicker()
-            => new RandomReprodictionPicker<Creature>(this, rnd.Next());
+            => new RandomReproductionPicker<Creature>(this, rnd.Next());
 
-        private class RandomReprodictionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker>
+        private class RandomReproductionPicker<CreatureOfRepPicker> : IRandomReproductionPicker<CreatureOfRepPicker>
         {
             EnvironmentOf<CreatureOfRepPicker> environment;
             Random rnd;
 
-            public RandomReprodictionPicker(EnvironmentOf<CreatureOfRepPicker> environment, int seed)
+            public RandomReproductionPicker(EnvironmentOf<CreatureOfRepPicker> environment, int seed)
             {
                 this.environment = environment;
                 rnd = new Random(seed);
