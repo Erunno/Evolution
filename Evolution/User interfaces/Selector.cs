@@ -19,7 +19,17 @@ namespace Evolution
         IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count);
 
         RatedCreature<Creature> PeekBestCreature();
+        
+        /// <summary>
+        /// Store of creatures which are not good enought
+        /// User can extract creatures and reuse them
+        /// 
+        /// It doesnt have to be implemented 
+        /// but it deacreases pressure on garbage collector
+        /// </summary>
+        IDisposedCreaturesStore<Creature> DisposedCreatures { get; } 
     }
+
 
     /// <summary>
     /// Function which evaluates a crature
@@ -32,11 +42,12 @@ namespace Evolution
 
         public NewBestCretureFoundEventDelegate<Creature> NewBestCretureFound { get; set; }
 
+        public IDisposedCreaturesStore<Creature> DisposedCreatures { get; } = new DefaultDisposedCreaturesStore<Creature>();
+
         public DefaultSelector(
-            FitnessFunctionDelegate<Creature> fitnessFunction, NewBestCretureFoundEventDelegate<Creature> newBestFound, 
+            NewBestCretureFoundEventDelegate<Creature> newBestFound, 
             RatedCreature<Creature> foreFather, int sizeOfSetOfReturnedCreatures)
         {
-            FitnessFunction = fitnessFunction;
             NewBestCretureFound = newBestFound;
 
             heap = new HeapOfMaximalSize<RatedCreature<Creature>>(sizeOfSetOfReturnedCreatures);
@@ -55,12 +66,20 @@ namespace Evolution
             {
                 if (newCreature.CompareTo(heap.PeekMin()) > 0) //if newCreature is better than the worst of creatures in heap
                 {
-                    heap.ExtractMin();
+                    Creature theWorst = heap.ExtractMin().TheCreature;
+                    TrySaveDisposedCreature(theWorst);
+
                     heap.Insert(newCreature);                  
                 }
             }
             else
                 heap.Insert(newCreature);
+        }
+
+        private void TrySaveDisposedCreature(Creature disposedCreature)
+        {
+            if (DisposedCreatures.StoreCreatures)
+                DisposedCreatures.EmplaceCreature(disposedCreature);
         }
 
         private RatedCreature<Creature> bestCreature;
@@ -112,7 +131,10 @@ namespace Evolution
         private void PrepareHeapToDownSizing(int newSize)
         {
             for (int i = 0; i < heap.Count - newSize; i++)
-                heap.ExtractMin();
+            {
+                Creature theWorst = heap.ExtractMin().TheCreature;
+                TrySaveDisposedCreature(theWorst);
+            }
         }
 
         public RatedCreature<Creature> PeekBestCreature()
