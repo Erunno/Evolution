@@ -37,7 +37,7 @@ namespace Evolution
         /// <summary>
         /// Is inicialized with number of logical processors
         /// </summary>
-        public int NumberOfRunningThreads { get; set; } = Environment.ProcessorCount;
+        public int NumberOfRunningThreads { get; set; } = Environment.ProcessorCount; //todo implement controls of right input
 
         /// <summary>
         /// Have to be in range [0,1]
