@@ -12,7 +12,7 @@ namespace Evolution
 
         private EnvironmentOf<Creature> myEnvironment;
 
-        private StartPool<Creature> startPool;
+        private StartPool<Creature> startPool = new StartPool<Creature>();
 
         public ComputationManager(EnvironmentOf<Creature> environment)
         {
