@@ -8,7 +8,7 @@ namespace Evolution
     /// Provides EnvinronmentOf<<typeparamref name="Creature"/>> with nessesary informations
     /// </summary>
     /// <typeparam name="Creature"></typeparam>
-    class StartingInfo<Creature>
+    public class StartingInfo<Creature>
     {
         public StartingInfo(ISelector<Creature> selector, IFitnessFunctionFactory<Creature> fitnessFunctionFactory)
         {
@@ -60,9 +60,9 @@ namespace Evolution
         /// Is useful only if default selector is used (i.e. was not called consturctor with ISelector<Creature> in argument)
         /// And even that it is optional
         /// </summary>
-        public NewBestCretureFoundEventDelegate<Creature> newBestCreture;
+        public NewBestCretureFoundEventDelegate<Creature> NewBestCreture;
 
-        internal ISelector<Creature> GetSelector()
+        internal ISelector<Creature> GetSelector(EnvironmentOf<Creature> environment)
         {
             if (Selector != null) //selector has been provided by user
                 return Selector;
@@ -70,7 +70,7 @@ namespace Evolution
             FitnessFunctionDelegate<Creature> tempFitnessFunction = FitnessFunctionFactory.CreateNewFitnessFunctionDelegate();
             RatedCreature<Creature> ratedForeFather = new RatedCreature<Creature>(foreFather, tempFitnessFunction(foreFather));
 
-            return new DefaultSelector<Creature>(newBestCreture, ratedForeFather, NumberOfSurvivals);
+            return new DefaultSelector<Creature>(NewBestCreture, ratedForeFather, NumberOfSurvivals, environment.DisposedCreatures);
         }
 
         internal IFitnessFunctionFactory<Creature> GetFitnessFunctionFactory() => FitnessFunctionFactory;

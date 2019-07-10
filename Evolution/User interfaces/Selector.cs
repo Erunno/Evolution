@@ -19,15 +19,6 @@ namespace Evolution
         IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count);
 
         RatedCreature<Creature> PeekBestCreature();
-        
-        /// <summary>
-        /// Store of creatures which are not good enought
-        /// User can extract creatures and reuse them
-        /// 
-        /// It doesnt have to be implemented 
-        /// but it deacreases pressure on garbage collector
-        /// </summary>
-        IDisposedCreaturesStore<Creature> DisposedCreatures { get; } 
     }
 
 
@@ -42,13 +33,15 @@ namespace Evolution
 
         public NewBestCretureFoundEventDelegate<Creature> NewBestCretureFound { get; set; }
 
-        public IDisposedCreaturesStore<Creature> DisposedCreatures { get; } = new DefaultDisposedCreaturesStore<Creature>();
+        private DisposedCreaturesStore<Creature> DisposedCreatures;
 
         public DefaultSelector(
             NewBestCretureFoundEventDelegate<Creature> newBestFound, 
-            RatedCreature<Creature> foreFather, int sizeOfSetOfReturnedCreatures)
+            RatedCreature<Creature> foreFather, int sizeOfSetOfReturnedCreatures,
+            DisposedCreaturesStore<Creature> disposedCreatures)
         {
             NewBestCretureFound = newBestFound;
+            DisposedCreatures = disposedCreatures;
 
             heap = new HeapOfMaximalSize<RatedCreature<Creature>>(sizeOfSetOfReturnedCreatures);
             bestCreatures = new RatedCreature<Creature>[sizeOfSetOfReturnedCreatures];
@@ -98,15 +91,18 @@ namespace Evolution
 
         public IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count)
         {
-            if (heap.Count < count)
-                throw new NotEnoughElementsException();
+            //if (heap.Count < count)
+            //    throw new NotEnoughElementsException();
+            //todo solve this
 
             heap.CopyHeapToArray(bestCreatures);
 
             versionOfBestCreatures++;
             Array.Sort(bestCreatures, index: 0, length: heap.Count);
 
-            return GetRatedCreatures_IterMethod(count,versionOfBestCreatures);
+            int realCreaturesCount = Math.Min(count, heap.Count);
+
+            return GetRatedCreatures_IterMethod(realCreaturesCount, versionOfBestCreatures);
         }
 
         private IEnumerable<RatedCreature<Creature>> GetRatedCreatures_IterMethod(int count, int versionLocal)

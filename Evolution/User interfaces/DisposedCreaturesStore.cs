@@ -4,45 +4,37 @@ using System.Text;
 
 namespace Evolution
 {
-
-    public interface IDisposedCreaturesStore<Creature>
+    public class DisposedCreaturesStore<Creature>
     {
-        bool StoreCreatures { get; set; }
+        public bool StoreCreatures { get; private set; } = false;
+
+        public bool IsEmpty { get; private set; }
 
         /// <summary>
-        /// Returned creature is removed from the set
-        /// 
-        /// This method is expected to be thread save
+        /// Sets StoreCreatures to false and stored creatures will be fotgoten 
         /// </summary>
-        Creature ExtractCreature();
-
-        /// <summary>
-        /// Adds new disposed creature
-        /// 
-        /// This method is expected to be thread save
-        /// </summary>
-        void EmplaceCreature(Creature disposedCreature);
-    }
-
-    class DefaultDisposedCreaturesStore<Creature> : IDisposedCreaturesStore<Creature>
-    {
-        private bool _storeCreatures = false;
-        public bool StoreCreatures
+        public void  UnsetStoreCraeturesAndForgetStoredCreatures()
         {
-            get => _storeCreatures;
-            set
-            {
-                if (_storeCreatures == false && value == true)
-                    disposedCreatures = new Queue<Creature>();
-                else if (_storeCreatures == true && value == false)
-                    disposedCreatures = null;
+            disposedCreatures = null;
+            StoreCreatures = false;
+        }
 
-                _storeCreatures = value;
-            }
+        /// <summary>
+        /// Sets StoreCreatures to true
+        /// </summary>
+        public void SetStoreCreatures()
+        {
+            disposedCreatures = new Queue<Creature>();
+            StoreCreatures = true;
         }
 
         private Queue<Creature> disposedCreatures;
 
+        /// <summary>
+        /// Adds new disposed creature
+        /// 
+        /// Thread save method
+        /// </summary>
         public void EmplaceCreature(Creature disposedCreature)
         {
             if (!StoreCreatures)
@@ -52,15 +44,26 @@ namespace Evolution
                 disposedCreatures.Enqueue(disposedCreature);
         }
 
+        /// <summary>
+        /// Returned creature is removed from the set
+        /// 
+        /// Thread save method
+        /// </summary>
         public Creature ExtractCreature()
         {
             if (!StoreCreatures)
                 throw new NotStoringDisposedCreaturesException();
 
+            if (IsEmpty)
+                throw new EmptyStoreException();
+
+            IsEmpty = disposedCreatures.Count == 1; //after returnnig there will be none
+
             lock (disposedCreatures)
                 return disposedCreatures.Dequeue();
-        }
+        } 
     }
 
     class NotStoringDisposedCreaturesException : Exception { }
+    class EmptyStoreException : Exception { }
 }

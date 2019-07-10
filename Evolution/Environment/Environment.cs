@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace Evolution
 {
-    class EnvironmentOf<Creature>
+    public class EnvironmentOf<Creature>
     {
         /// <summary>
         /// Nuber of threads is defautly set to number of logical cores
         /// </summary>
         public EnvironmentOf(StartingInfo<Creature> startingInfo)
         {
-            Selector = startingInfo.GetSelector();
+            Selector = startingInfo.GetSelector(this);
             FitnessFunctionFactory = startingInfo.GetFitnessFunctionFactory();
 
             interval = new IntervalOfChildrenCount<Creature>(this);
@@ -28,6 +28,15 @@ namespace Evolution
         /// It must not be emty - at least one Creture have to be present
         /// </summary>
         public ISelector<Creature> Selector { get; set; }
+
+        /// <summary>
+        /// Store of creatures which are not good enought
+        /// User can extract creatures and reuse them
+        /// 
+        /// It doesnt have to be implemented 
+        /// but it deacreases pressure on garbage collector
+        /// </summary>
+        public DisposedCreaturesStore<Creature> DisposedCreatures { get; } = new DisposedCreaturesStore<Creature>();
 
         /// <summary>
         /// Creates new fitness function.
@@ -123,12 +132,16 @@ namespace Evolution
             MutationRate = newRate;
         }
 
+        //todo change interface and add providers
+
         /// <summary>
         /// Adds new way of asexual reproduction
         /// </summary>
         public void AddAsexualReproduction(IAsexualReproduction<Creature> asexualReproduction)
         {
             asexualReproductions.Add(asexualReproduction);
+
+            implementedMeansOfReproduction.Add(MeanOfReproduction.asexual);
         }
 
         /// <summary>
@@ -137,6 +150,8 @@ namespace Evolution
         public void AddSexualReproduction(ISexualReproduction<Creature> sexualReproduction)
         {
             sexualReproductions.Add(sexualReproduction);
+
+            implementedMeansOfReproduction.Add(MeanOfReproduction.sexual);
         }
 
         /// <summary>
@@ -146,7 +161,12 @@ namespace Evolution
         {
             mutation.MutationRate = MutationRate;
             mutations.Add(mutation);
+
+            implementedMeansOfReproduction.Add(MeanOfReproduction.mutation);
         }
+
+        private List<MeanOfReproduction> implementedMeansOfReproduction = new List<MeanOfReproduction>();
+
 
         /// <summary>
         /// Returns set of best creatures based on their rating. (Performs sorting)
@@ -165,8 +185,6 @@ namespace Evolution
         ///     Mandatory (throws exeption...):
         ///     Selector (or at least fitness function passed to "CreateAndSetDefaultSelector")
         ///     FitnessFunctionFactory (or at least call CreateAndSetDefaultFitnessFunctionFactory with desired parametres)
-        ///     Every mean of reproduction have to be provided
-        ///         i.e. mutation, sexual reproduction and asexual repr.
         /// 
         ///     Optional (but good idea to set):
         ///     SizeOfPupulation
@@ -177,7 +195,7 @@ namespace Evolution
             if (Selector == null)
                 throw new UnassignedSelectorException();
 
-            if (!EveryMeanOfReproductionIsNotEmpty()) //ToDo user dont have to implement all of it
+            if (!ThereIsAtLeastOneWayToReproduce()) //ToDo user dont have to implement all of it
                 throw new SomeMeanOfReproductionHasNotBeenProvidedException();
 
             for (int i = 0; i < numOfSteps; i++)
@@ -187,8 +205,8 @@ namespace Evolution
             }
         }
 
-        private bool EveryMeanOfReproductionIsNotEmpty()
-            => mutations.Count != 0 && sexualReproductions.Count != 0 && asexualReproductions.Count != 0;
+        private bool ThereIsAtLeastOneWayToReproduce()
+            => mutations.Count != 0 || sexualReproductions.Count != 0 || asexualReproductions.Count != 0;
 
         internal IRandomReproductionPicker<Creature> GetRandomReproductionPicker()
             => new RandomReproductionPicker<Creature>(this, rnd.Next());
@@ -224,7 +242,12 @@ namespace Evolution
 
             public int GetNumOfChildren() => rnd.Next(environment.interval.From, environment.interval.To);
 
-            public MeanOfReproduction GetRandomMeanOfReproduction() => (MeanOfReproduction)rnd.Next(0, 3);
+            public MeanOfReproduction GetRandomMeanOfReproduction()
+            {
+                int rndIndex = rnd.Next(0, environment.implementedMeansOfReproduction.Count);
+
+                return environment.implementedMeansOfReproduction[rndIndex];
+            }
         }
     }
 
