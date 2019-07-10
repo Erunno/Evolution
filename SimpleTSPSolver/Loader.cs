@@ -18,7 +18,7 @@ namespace SimpleTSPSolver
             {
                 string line = input.ReadLine();
 
-                string[] numbers = line.Split();
+                string[] numbers = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (numbers.Length != length)
                     throw new FormatException($"Table line {i}: Wrong number of fields");
