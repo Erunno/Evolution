@@ -12,8 +12,10 @@ namespace SimpleTSPSolver
                 throw new WrongDimensionsException();
 
             values = valuesOfEdges;
+            VerticiesCount = valuesOfEdges.GetLength(0);
         }
 
+        public int VerticiesCount { get; }
         int[,] values;
 
         public double Evaluate(Cycle cycle)
