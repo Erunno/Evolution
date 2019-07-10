@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace SimpleTSPSolver
 {
@@ -6,7 +7,11 @@ namespace SimpleTSPSolver
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            StreamReader input = new StreamReader("input");
+
+            Manager manger = new Manager(input);
+
+            manger.RunEvolution();
         }
     }
 }
