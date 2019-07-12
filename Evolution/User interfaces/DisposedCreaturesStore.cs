@@ -8,7 +8,7 @@ namespace Evolution
     {
         public bool StoreCreatures { get; private set; } = false;
 
-        public bool IsEmpty { get; private set; }
+        public bool IsEmpty { get; private set; } = true;
 
         /// <summary>
         /// Sets StoreCreatures to false and stored creatures will be fotgoten 
@@ -33,21 +33,21 @@ namespace Evolution
         /// <summary>
         /// Adds new disposed creature
         /// 
-        /// Thread save method
+        /// Is not thread save
         /// </summary>
         public void EmplaceCreature(Creature disposedCreature)
         {
             if (!StoreCreatures)
                 throw new NotStoringDisposedCreaturesException();
 
-            lock (disposedCreature)
-                disposedCreatures.Enqueue(disposedCreature);
+            disposedCreatures.Enqueue(disposedCreature);
+            IsEmpty = false;
         }
 
         /// <summary>
-        /// Returned creature is removed from the set
+        /// Returned creature is removed from the set.
         /// 
-        /// Thread save method
+        /// Is not thread save
         /// </summary>
         public Creature ExtractCreature()
         {
@@ -57,10 +57,10 @@ namespace Evolution
             if (IsEmpty)
                 throw new EmptyStoreException();
 
+
             IsEmpty = disposedCreatures.Count == 1; //after returnnig there will be none
 
-            lock (disposedCreatures)
-                return disposedCreatures.Dequeue();
+            return disposedCreatures.Dequeue();
         } 
     }
 
