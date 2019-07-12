@@ -15,10 +15,22 @@ namespace Evolution
         /// <summary>
         /// Returns set of best creatures in the set
         /// </summary>
-        /// <param name="count">Count of creatures in enumerable</param>
-        IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count);
+        IEnumerable<RatedCreature<Creature>> GetSurvivingCreatures();
+
+        /// <summary>
+        /// Fill given list with surviving creatures.
+        /// Count of provided List have to bigger than or equal to NumberOfSurvivingCreatures
+        /// </summary>
+        /// <returns>Count of creatures with which was the list filled</returns>
+        int FillWithSurvivingCreatures(List<RatedCreature<Creature>> litsToBeFilled);
+
+        int NumberOfSurvivals { get; }
+
+        void SetMaximalNuberOfSurvivals(int newCount);
 
         RatedCreature<Creature> PeekBestCreature();
+
+        void DisposeAllCreatures();
     }
 
 
@@ -33,18 +45,19 @@ namespace Evolution
 
         public NewBestCretureFoundEventDelegate<Creature> NewBestCretureFound { get; set; }
 
+        public int NumberOfSurvivals { get; private set; }
+
         private DisposedCreaturesStore<Creature> DisposedCreatures;
 
         public DefaultSelector(
             NewBestCretureFoundEventDelegate<Creature> newBestFound, 
-            RatedCreature<Creature> foreFather, int sizeOfSetOfReturnedCreatures,
+            RatedCreature<Creature> foreFather, int NumberOfSurvivals,
             DisposedCreaturesStore<Creature> disposedCreatures)
         {
             NewBestCretureFound = newBestFound;
             DisposedCreatures = disposedCreatures;
 
-            heap = new HeapOfMaximalSize<RatedCreature<Creature>>(sizeOfSetOfReturnedCreatures);
-            bestCreatures = new RatedCreature<Creature>[sizeOfSetOfReturnedCreatures];
+            heap = new HeapOfMaximalSize<RatedCreature<Creature>>(NumberOfSurvivals);
 
             bestCreature = foreFather;
             AddCreature(foreFather);
@@ -62,8 +75,10 @@ namespace Evolution
                     Creature theWorst = heap.ExtractMin().TheCreature;
                     TrySaveDisposedCreature(theWorst);
 
-                    heap.Insert(newCreature);                  
+                    heap.Insert(newCreature);
                 }
+                else
+                    TrySaveDisposedCreature(newCreature.TheCreature);
             }
             else
                 heap.Insert(newCreature);
@@ -86,48 +101,22 @@ namespace Evolution
             NewBestCretureFound?.Invoke(newBestCreature.TheCreature, newBestCreature.FitnessValue);
         }
 
-        private RatedCreature<Creature>[] bestCreatures;
-        int versionOfBestCreatures = 0;
+        public IEnumerable<RatedCreature<Creature>> GetSurvivingCreatures() => heap;
 
-        public IEnumerable<RatedCreature<Creature>> GetBestCreatures(int count)
+        public void SetMaximalNuberOfSurvivals(int newCount)
         {
-            //if (heap.Count < count)
-            //    throw new NotEnoughElementsException();
-            //todo solve this
+            NumberOfSurvivals = newCount;
 
-            heap.CopyHeapToArray(bestCreatures);
+            if (newCount < heap.Count)
+                PrepareHeapToDownSizing(newCount);
 
-            versionOfBestCreatures++;
-            Array.Sort(bestCreatures, index: 0, length: heap.Count);
-
-            int realCreaturesCount = Math.Min(count, heap.Count);
-
-            return GetRatedCreatures_IterMethod(realCreaturesCount, versionOfBestCreatures);
-        }
-
-        private IEnumerable<RatedCreature<Creature>> GetRatedCreatures_IterMethod(int count, int versionLocal)
-        {
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if (versionOfBestCreatures != versionLocal)
-                    throw new InvalidOperationException();
-
-                yield return bestCreatures[i];
-            }
-        }
-
-        public void ChangeSizeOfHeap(int newSize)
-        {
-            if (newSize < heap.Count)
-                PrepareHeapToDownSizing(newSize);
-
-            heap.SetNewSize(newSize);
+            heap.SetNewSize(newCount);
         }
 
         private void PrepareHeapToDownSizing(int newSize)
         {
-            for (int i = 0; i < heap.Count - newSize; i++)
-            {
+            while(heap.Count > newSize)
+            { 
                 Creature theWorst = heap.ExtractMin().TheCreature;
                 TrySaveDisposedCreature(theWorst);
             }
@@ -137,7 +126,37 @@ namespace Evolution
         {
             return bestCreature;
         }
+
+        public void DisposeAllCreatures()
+        {
+            TrySaveCreatures();
+
+            heap.ClearWithPossibleMemoryLeaks();
+        }
+
+        private void TrySaveCreatures()
+        {
+            if (!DisposedCreatures.StoreCreatures)
+                return;
+
+            foreach (var disposedCreature in heap)
+                DisposedCreatures.EmplaceCreature(disposedCreature.TheCreature);
+        }
+
+        public int FillWithSurvivingCreatures(List<RatedCreature<Creature>> litsToBeFilled)
+        {
+            if (litsToBeFilled.Count < NumberOfSurvivals)
+                throw new SmallListProvidedException();
+
+            int i = -1;
+            foreach (var creature in heap)
+                litsToBeFilled[++i] = creature;
+
+            return ++i;
+        }
     }
 
     public class NotEnoughElementsException : Exception { }
+
+    public class SmallListProvidedException : Exception { }
 }
