@@ -3,7 +3,6 @@ using Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
-using System.Collections.Generic;
 using System;
 using Evolution;
 using UtilsTests;
@@ -24,11 +23,17 @@ namespace EvolutionTests
         public void AddCreature_GetBestCreatures(int size,int seed)
         {
             //arrange
-            DefaultSelector<FakeCreature> selector = new DefaultSelector<FakeCreature>(Functions.FakeFitnesFunction, size); //todo repaire test
+            NewBestCretureFoundEventDelegate<FakeCreature> newBestFound = (_, __) => { };
+            RatedCreature<FakeCreature> foreFather = new RatedCreature<FakeCreature>(new FakeCreature(-1), -1);
+            DisposedCreaturesStore<FakeCreature> disposedCreatures = new DisposedCreaturesStore<FakeCreature>();
+
+            DefaultSelector<FakeCreature> selector 
+                = new DefaultSelector<FakeCreature>(newBestFound, foreFather,size,disposedCreatures);
             RandomEnum rndE = new RandomEnum(seed);
             List<RatedCreature<FakeCreature>> insertedCreatures = new List<RatedCreature<FakeCreature>>();
 
             int limit = size * 10;
+            insertedCreatures.Add(foreFather);
 
             foreach (var num in rndE)
             {
@@ -44,7 +49,10 @@ namespace EvolutionTests
             //Assert
             insertedCreatures.Sort((x,y) => y.CompareTo(x));
             var expected = insertedCreatures.Take(size).ToList();
-            var actual = selector.GetSurvivingCreatures(size).ToList();
+            var actual =
+                (from cr in selector.GetSurvivingCreatures()
+                 orderby cr.FitnessValue descending
+                 select cr).ToList();
 
             Assert.AreEqual(expected.Count, actual.Count);
 
