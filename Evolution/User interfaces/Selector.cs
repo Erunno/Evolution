@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Utils;
+using System.Linq;
 
 namespace Evolution
 {
@@ -30,7 +31,10 @@ namespace Evolution
 
         RatedCreature<Creature> PeekBestCreature();
 
-        void DisposeAllCreatures();
+        /// <summary>
+        /// Returns all surviving creatures and it will drop them
+        /// </summary>
+        IEnumerable<RatedCreature<Creature>> ExtractSurvivingCratures();
     }
 
 
@@ -87,7 +91,8 @@ namespace Evolution
         private void TrySaveDisposedCreature(Creature disposedCreature)
         {
             if (DisposedCreatures.StoreCreatures)
-                DisposedCreatures.EmplaceCreature(disposedCreature);
+                lock(DisposedCreatures)
+                    DisposedCreatures.EmplaceCreature(disposedCreature);
         }
 
         private RatedCreature<Creature> bestCreature;
@@ -127,20 +132,13 @@ namespace Evolution
             return bestCreature;
         }
 
-        public void DisposeAllCreatures()
+        public IEnumerable<RatedCreature<Creature>> ExtractSurvivingCratures()
         {
-            TrySaveCreatures();
+            List<RatedCreature<Creature>> creaturesToReturn = heap.ToList(); //have to enumerate them, because i will modify heap
 
             heap.ClearWithPossibleMemoryLeaks();
-        }
 
-        private void TrySaveCreatures()
-        {
-            if (!DisposedCreatures.StoreCreatures)
-                return;
-
-            foreach (var disposedCreature in heap)
-                DisposedCreatures.EmplaceCreature(disposedCreature.TheCreature);
+            return creaturesToReturn;
         }
 
         public int FillWithSurvivingCreatures(List<RatedCreature<Creature>> litsToBeFilled)
