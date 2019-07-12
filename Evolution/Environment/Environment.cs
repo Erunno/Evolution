@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Evolution
 {
@@ -11,16 +12,20 @@ namespace Evolution
         public EnvironmentOf(StartingInfo<Creature> startingInfo)
         {
             Selector = startingInfo.GetSelector(this);
+            Selector.SetMaximalNuberOfSurvivals(startingInfo.NumberOfSurvivals);
+
             FitnessFunctionFactory = startingInfo.GetFitnessFunctionFactory();
 
             interval = new IntervalOfChildrenCount<Creature>(this);
 
-            NumberOfSurvivals = startingInfo.NumberOfSurvivals;
             SizeOfPupulation = startingInfo.SizeOfPopulation;
             MutationRate = startingInfo.MutationRate;
             MaximalNumOfRunningThreads = startingInfo.NumberOfRunningThreads;
 
-            CreateOrUpdateComputationManager();
+            computationManager = new ComputationManager<Creature>(this);
+            UpdateComputationManager();
+
+            evolutionManager = new EvolutionManager<Creature>(this, computationManager);
         }
 
         /// <summary>
@@ -48,14 +53,11 @@ namespace Evolution
         public void SetFitnessFunctinonFactory(IFitnessFunctionFactory<Creature> newFitnessFunctionFactory)
         {
             FitnessFunctionFactory = newFitnessFunctionFactory;
-            CreateOrUpdateComputationManager();
+            UpdateComputationManager();
         }
 
-        private void CreateOrUpdateComputationManager()
+        private void UpdateComputationManager()
         {
-            if (computationManager == null)
-                computationManager = new ComputationManager<Creature>(this);
-
             computationManager.UpdateFitnessFunction();
         }
 
@@ -79,25 +81,6 @@ namespace Evolution
                 _sizeOfPopulation = value;
                 interval.RecomputeInterval();
             }
-        }
-
-        /// <summary>
-        /// Maximal number of survivals from generation n to generation n+1
-        /// </summary>
-        public int NumberOfSurvivals { get; private set; } = 100;
-
-        /// <summary>
-        /// Setting new value can mean memory allocation (in case of default selector)
-        /// therefore it is not good idea doing it often
-        /// </summary>
-        /// <param name="newNumberOfSurvivals"></param>
-        public void SetNumberOfSurvivals(int newNumberOfSurvivals)
-        {
-            if (Selector.GetType() == typeof(DefaultSelector<Creature>))
-                ((DefaultSelector<Creature>)Selector).ChangeSizeOfHeap(newNumberOfSurvivals);
-
-            NumberOfSurvivals = newNumberOfSurvivals;
-            interval.RecomputeInterval();
         }
 
         private IntervalOfChildrenCount<Creature> interval;
@@ -174,10 +157,17 @@ namespace Evolution
         /// <param name="count">Size of returned IEnumerable</param>
         public IEnumerable<RatedCreature<Creature>> GetBestRatedCreatures(int count)
         {
-            return Selector.GetBestCreatures(count);
+            var orderedCreatures =
+                from cr in Selector.GetSurvivingCreatures()
+                orderby cr.FitnessValue descending
+                select cr;
+
+            return orderedCreatures.Take(count);
         }
 
-        private ComputationManager<Creature> computationManager;
+        private ComputationManager<Creature> computationManager { get; }
+
+        private EvolutionManager<Creature> evolutionManager { get; }
 
         /// <summary>
         /// Runs evolution 
@@ -192,15 +182,17 @@ namespace Evolution
         /// </summary>
         public void RunEvolution(int numOfSteps)
         {
-            if (Selector == null)
+            if (Selector == null) //todo check whether i check everything
                 throw new UnassignedSelectorException();
 
-            if (!ThereIsAtLeastOneWayToReproduce()) //ToDo user dont have to implement all of it
+            if (!ThereIsAtLeastOneWayToReproduce())
                 throw new SomeMeanOfReproductionHasNotBeenProvidedException();
+
+            interval.RecomputeInterval();
 
             for (int i = 0; i < numOfSteps; i++)
             {
-                computationManager.RunOneGeneration();
+                evolutionManager.RunOneStepOfEvolution();
                 NumOfGenerationSoFar++;
             }
         }
@@ -280,13 +272,14 @@ namespace Evolution
 
         public void RecomputeInterval()
         {
-            int meanValueOfChildren = (environment.SizeOfPupulation + environment.NumberOfSurvivals) / environment.NumberOfSurvivals; //rounded up
+            int numOfSurvivals = environment.Selector.NumberOfSurvivals;
+
+            int meanValueOfChildren = (environment.SizeOfPupulation + numOfSurvivals) / numOfSurvivals; //rounded up
 
             From = meanValueOfChildren - Variation;
             To = meanValueOfChildren + Variation + 1; //upper bound is exclusive
         }
     }
-
     class UnvalidMutationRateException : Exception { }
     class UnassignedSelectorException : Exception { } 
     class SomeMeanOfReproductionHasNotBeenProvidedException : Exception { }
