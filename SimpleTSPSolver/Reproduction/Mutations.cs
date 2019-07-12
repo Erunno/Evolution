@@ -27,7 +27,7 @@ namespace SimpleTSPSolver
             lock (rnd)
                 numOfSwiches = (int)(rnd.NextDouble() * maxNumOfSwiches) + 1; //at least one swich will be performed
 
-            int[] newCycleArray = new int[parent.Verticies.Length];
+            int[] newCycleArray = GetNewCycleArray(parent.Verticies.Length);
             for (int i = 0; i < newCycleArray.Length; i++)
                 newCycleArray[i] = parent.Verticies[i];
 
@@ -44,6 +44,15 @@ namespace SimpleTSPSolver
             }
 
             return new Cycle(newCycleArray);
+        }
+
+        private int[] GetNewCycleArray(int size)
+        {
+            lock (myEnvinronment.DisposedCreatures)
+                if (!myEnvinronment.DisposedCreatures.IsEmpty)
+                    return myEnvinronment.DisposedCreatures.ExtractCreature().Verticies;
+
+            return new int[size];
         }
     }
 

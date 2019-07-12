@@ -36,8 +36,13 @@ namespace SimpleTSPSolver
             startingInfo.MutationRate = 0.10;
             startingInfo.NewBestCreture = NewBestFound;
 
+            startingInfo.SizeOfPopulation = 10_000;
+            startingInfo.NumberOfSurvivals = 1_000;
+
             EnvironmentOf<Cycle> environment = new EnvironmentOf<Cycle>(startingInfo);
             environment.AddMutation(new SwichingMutation(environment));
+
+            environment.DisposedCreatures.SetStoreCreatures();
 
             return environment;
         }
