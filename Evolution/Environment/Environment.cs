@@ -104,9 +104,9 @@ namespace Evolution
         /// Sets new rate to all of mutations which were provided
         /// </summary>
         /// <param name="newRate">Have to be in interval [0,1] (inclusive)</param>
-        public void SetMutationRate(int newRate)
+        public void SetMutationRate(double newRate)
         {
-            if (newRate < 0 || 1 > newRate)
+            if (newRate < 0 || 1 < newRate)
                 throw new UnvalidMutationRateException();
 
             foreach (var mutation in mutations)
