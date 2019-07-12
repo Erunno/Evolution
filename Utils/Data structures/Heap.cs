@@ -2,10 +2,11 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 
 namespace Utils
 {
-    public class HeapOfMaximalSize<T> where T : IComparable<T>
+    public class HeapOfMaximalSize<T> : IEnumerable<T> where T : IComparable<T>
     {
         public HeapOfMaximalSize(int size)
         {
@@ -133,6 +134,42 @@ namespace Utils
                 newHeap[i] = heap[i];
 
             heap = newHeap;
+        }
+
+        public IEnumerator<T> GetEnumerator() => GetEnumerator(Version);
+
+        private IEnumerator<T> GetEnumerator(int versionLocal)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (Version != versionLocal)
+                    throw new InvalidOperationException();
+
+                yield return heap[i];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
+
+        /// <summary>
+        /// Is faster than Clear()
+        /// </summary>
+        public void ClearWithPossibleMemoryLeaks()
+        {
+            Count = 0;
+            Version++;
+        }
+
+        /// <summary>
+        /// Clears internal array
+        /// </summary>
+        public void Clear()
+        {
+            ClearWithPossibleMemoryLeaks();
+
+            for (int i = 0; i < Count; i++)
+                heap[i] = default(T);
         }
     }
 
