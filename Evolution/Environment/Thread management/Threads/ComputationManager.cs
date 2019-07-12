@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Utils;
 using System.Threading;
+using System.Linq;
 
 namespace Evolution
 {
@@ -71,11 +72,23 @@ namespace Evolution
             workingThreads = activeJobs.Count;
         }
 
+        List<RatedCreature<Creature>> internalPool = new List<RatedCreature<Creature>>();
+
         private void FillStartPool()
         {
-            IEnumerable<RatedCreature<Creature>> bestCreatures = myEnvironment.Selector.GetBestCreatures(myEnvironment.NumberOfSurvivals);
+            PrepareInternalPool();
 
-            startPool.FillWithNewCreatures(bestCreatures);
+            int count = myEnvironment.Selector.FillWithSurvivingCreatures(internalPool);
+
+            startPool.FillWithNewCreatures(internalPool.Take(count));
+        }
+
+        private void PrepareInternalPool()
+        {
+            int NumberOfSurvivals = myEnvironment.Selector.NumberOfSurvivals;
+
+            while (internalPool.Count < NumberOfSurvivals)
+                internalPool.Add(new RatedCreature<Creature>(default(Creature), 0));
         }
 
         private void WakeUpAllThreads()
