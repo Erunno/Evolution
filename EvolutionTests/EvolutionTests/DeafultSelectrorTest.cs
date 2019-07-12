@@ -24,7 +24,7 @@ namespace EvolutionTests
         public void AddCreature_GetBestCreatures(int size,int seed)
         {
             //arrange
-            DefaultSelector<FakeCreature> selector = new DefaultSelector<FakeCreature>(Functions.FakeFitnesFunction, size);
+            DefaultSelector<FakeCreature> selector = new DefaultSelector<FakeCreature>(Functions.FakeFitnesFunction, size); //todo repaire test
             RandomEnum rndE = new RandomEnum(seed);
             List<RatedCreature<FakeCreature>> insertedCreatures = new List<RatedCreature<FakeCreature>>();
 
@@ -44,7 +44,7 @@ namespace EvolutionTests
             //Assert
             insertedCreatures.Sort((x,y) => y.CompareTo(x));
             var expected = insertedCreatures.Take(size).ToList();
-            var actual = selector.GetBestCreatures(size).ToList();
+            var actual = selector.GetSurvivingCreatures(size).ToList();
 
             Assert.AreEqual(expected.Count, actual.Count);
 
