@@ -10,14 +10,14 @@ namespace Evolution
 
         private EnvironmentOf<Creature> myEnvironment;
 
-        private IRandomReproductionPicker<Creature> reproductionPicker;
+        private IReproductionPicker<Creature> reproductionPicker;
 
         public MutationManager(EnvironmentOf<Creature> environment, StartPool<Creature> startPool, Creature foreFather)
         {
             soursePool = startPool;
             myEnvironment = environment;
 
-            reproductionPicker = environment.GetRandomReproductionPicker();
+            reproductionPicker = environment.GetReproductionPicker();
             lastCreature = foreFather;
         }
 
