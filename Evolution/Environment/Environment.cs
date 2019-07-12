@@ -175,10 +175,6 @@ namespace Evolution
         ///     Mandatory (throws exeption...):
         ///     Selector (or at least fitness function passed to "CreateAndSetDefaultSelector")
         ///     FitnessFunctionFactory (or at least call CreateAndSetDefaultFitnessFunctionFactory with desired parametres)
-        /// 
-        ///     Optional (but good idea to set):
-        ///     SizeOfPupulation
-        ///     NumberOfSurvivals
         /// </summary>
         public void RunEvolution(int numOfSteps)
         {
