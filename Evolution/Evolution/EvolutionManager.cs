@@ -13,21 +13,33 @@ namespace Evolution
         {
             this.environment = environment;
             this.computationManager = computationManager;
+            CountToCatastrofy = CatastrofyPeriod;
         }
 
-        int CountToCatastrofy = 100;
+        int CountToCatastrofy;
+        int CatastrofyPeriod = 100;
 
         public void RunOneStepOfEvolution()
         {
             if (--CountToCatastrofy == 0)
+            {
                 MakeCatastrofy();
-
-            computationManager.RunOneGeneration();
+                CountToCatastrofy = CatastrofyPeriod;
+            }
+            else
+                computationManager.RunOneGeneration();
         }
 
         private void MakeCatastrofy()
         {
-            
+            IEnumerable<RatedCreature<Creature>> parents = environment.Selector.ExtractSurvivingCratures();
+
+            double previousMutationRate = environment.MutationRate;
+            environment.SetMutationRate(0.95);
+
+            computationManager.RunOneGeneration(parents);
+
+            environment.SetMutationRate(previousMutationRate);
         }
     }
 }
