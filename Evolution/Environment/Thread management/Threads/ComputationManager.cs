@@ -67,6 +67,16 @@ namespace Evolution
             WaitUntilJobIsDone();
         }
 
+        public void RunOneGeneration(IEnumerable<RatedCreature<Creature>> parents)
+        {
+            InitNewRun();
+
+            FillStartPool(parents);
+            WakeUpAllThreads();
+
+            WaitUntilJobIsDone();
+        }
+
         private void InitNewRun()
         {
             workingThreads = activeJobs.Count;
@@ -89,6 +99,11 @@ namespace Evolution
 
             while (internalPool.Count < NumberOfSurvivals)
                 internalPool.Add(new RatedCreature<Creature>(default(Creature), 0));
+        }
+
+        private void FillStartPool(IEnumerable<RatedCreature<Creature>> parents)
+        {
+            startPool.FillWithNewCreatures(parents);
         }
 
         private void WakeUpAllThreads()
