@@ -16,7 +16,7 @@ namespace Evolution
             FitnessFunctionFactory = fitnessFunctionFactory;
         }
 
-        /// <param name="fitnessFunction">Have to thread save since it will be used in several thread at the same time</param>
+        /// <param name="fitnessFunction">Have to thread save since it will be used in several threads at the same time</param>
         public StartingInfo(FitnessFunctionDelegate<Creature> fitnessFunction, Creature foreFather)
         {
             FitnessFunctionFactory = new DefaultFitnessFunctionFactory<Creature>(fitnessFunction);
@@ -34,15 +34,37 @@ namespace Evolution
         private ISelector<Creature> Selector { get; set; }
         private IFitnessFunctionFactory<Creature> FitnessFunctionFactory { get; set; }
 
+        private int _numberOfRunningThreads = Environment.ProcessorCount;
         /// <summary>
         /// Is inicialized with number of logical processors
         /// </summary>
-        public int NumberOfRunningThreads { get; set; } = Environment.ProcessorCount; //todo implement controls of right input
+        public int NumberOfRunningThreads
+        {
+            get => _numberOfRunningThreads;
+            set
+            {
+                if (value < 1)
+                    throw new UnvalidValueException($"Value of {nameof(NumberOfRunningThreads)} have to possitive number.");
 
+                _numberOfRunningThreads = value;
+            }
+        }
+
+        private double _mutationRate = 0.05;
         /// <summary>
         /// Have to be in range [0,1]
         /// </summary>
-        public double MutationRate { get; set; } = 0.05;
+        public double MutationRate
+        {
+            get => _mutationRate;
+            set
+            {
+                if (value < 0 || 1 < value)
+                    throw new UnvalidValueException($"Value of {nameof(NumberOfRunningThreads)} have to possitive number.");
+
+                _mutationRate = value;
+            }
+        }
 
         /// <summary>
         /// Should be significantly bigger than Size of population 
@@ -74,5 +96,15 @@ namespace Evolution
         }
 
         internal IFitnessFunctionFactory<Creature> GetFitnessFunctionFactory() => FitnessFunctionFactory;
+    }
+
+    class UnvalidValueException : Exception
+    {
+        public UnvalidValueException() { }
+
+        public UnvalidValueException(string message)
+            : base(message)
+        {
+        }
     }
 }
