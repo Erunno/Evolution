@@ -34,11 +34,14 @@ namespace Evolution
         /// </summary>
         public ISelector<Creature> Selector { get; set; }
 
-        /// <summary>
-        /// Store of creatures which are not good enought
-        /// User can extract creatures and reuse them
+         /// <summary>
+        /// Store of creatures which are not good enought.
+        /// User can extract creatures and reuse them.
         /// 
-        /// It doesnt have to be implemented 
+        /// Store itself is not thread save when used from 
+        ///     IMutation, ISexualReproduction, IAexualReproduction
+        /// 
+        /// It doesnt have to be implemented
         /// but it deacreases pressure on garbage collector
         /// </summary>
         public DisposedCreaturesStore<Creature> DisposedCreatures { get; } = new DisposedCreaturesStore<Creature>();
@@ -117,8 +120,6 @@ namespace Evolution
             MutationRate = newRate;
         }
 
-        //todo change interface and add providers
-
         /// <summary>
         /// Adds new way of asexual reproduction.
         /// </summary>
@@ -141,7 +142,7 @@ namespace Evolution
             => AddMutationProvider(() => mutation);
 
         /// <summary>
-        /// Add delegate which provides instance which implements IMutation.
+        /// Add delegate which provides object which implements IMutation.
         /// The instance does not have to thread save because every thread will have its own.
         /// </summary>
         public void AddMutationProvider(MutationProvider<Creature> mutationProvider)
@@ -155,7 +156,7 @@ namespace Evolution
         }
 
         /// <summary>
-        /// Add delegate which provides instance which implements ISexualReproduction.
+        /// Add delegate which provides object which implements ISexualReproduction.
         /// The instance does not have to thread save because every thread will have its own.
         /// </summary>
         public void AddSexualReproductionProvider(SexualReproductionProvider<Creature> sexualReproductionProvider)
@@ -169,7 +170,7 @@ namespace Evolution
         }
 
         /// <summary>
-        /// Add delegate which provides instance which implements IAsexualReproduction.
+        /// Add delegate which provides object which implements IAsexualReproduction.
         /// The instance does not have to thread save because every thread will have its own.
         /// </summary>
         public void AddAsexualReproductionProvider(AsexualReproductionProvider<Creature> asexualReproductionProvider)

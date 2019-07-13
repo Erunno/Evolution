@@ -7,14 +7,15 @@ namespace SimpleTSPSolver
 {
     class SwichingMutation : IMutation<Cycle>
     {
-        public SwichingMutation(EnvironmentOf<Cycle> environment)
+        public SwichingMutation(EnvironmentOf<Cycle> environment, int seed)
         {
             myEnvinronment = environment;
+            rnd = new Random(seed);
         }
 
         EnvironmentOf<Cycle> myEnvinronment;
 
-        Random rnd = new Random(42); //todo remove seed
+        Random rnd;
 
         public double MutationRate { get; set; }
 
@@ -24,8 +25,7 @@ namespace SimpleTSPSolver
 
             int numOfSwiches;
 
-            lock (rnd)
-                numOfSwiches = (int)(rnd.NextDouble() * maxNumOfSwiches) + 1; //at least one swich will be performed
+            numOfSwiches = (int)(rnd.NextDouble() * maxNumOfSwiches) + 1; //at least one swich will be performed
 
             int[] newCycleArray = GetNewCycleArray(parent.Verticies.Length);
             for (int i = 0; i < newCycleArray.Length; i++)
@@ -34,11 +34,8 @@ namespace SimpleTSPSolver
             for (int i = 0; i < numOfSwiches; i++)
             {
                 int k, j;
-                lock (rnd)
-                {
-                    k = rnd.Next(0, parent.Verticies.Length);
-                    j = rnd.Next(0, parent.Verticies.Length);
-                }
+                k = rnd.Next(0, parent.Verticies.Length);
+                j = rnd.Next(0, parent.Verticies.Length);
 
                 newCycleArray.Swich(k, j);
             }

@@ -39,8 +39,10 @@ namespace SimpleTSPSolver
             startingInfo.SizeOfPopulation = 10_000;
             startingInfo.NumberOfSurvivals = 1_000;
 
+            Random rnd = new Random(42); //todo remove seed
+
             EnvironmentOf<Cycle> environment = new EnvironmentOf<Cycle>(startingInfo);
-            environment.AddMutation(new SwichingMutation(environment));
+            environment.AddMutationProvider(() => new SwichingMutation(environment, rnd.Next()));
 
             environment.DisposedCreatures.SetStoreCreatures();
 
