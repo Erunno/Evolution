@@ -12,7 +12,7 @@ namespace Evolution
         public EnvironmentOf(StartingInfo<Creature> startingInfo)
         {
             Selector = startingInfo.GetSelector(this);
-            Selector.SetMaximalNuberOfSurvivals(startingInfo.NumberOfSurvivals);
+            Selector.SetMaximalNumberOfSurvivals(startingInfo.NumberOfSurvivals);
 
             FitnessFunctionFactory = startingInfo.GetFitnessFunctionFactory();
 
@@ -58,6 +58,9 @@ namespace Evolution
             FitnessFunctionFactory = newFitnessFunctionFactory;
             UpdateComputationManager();
         }
+
+        public void SetFitnessFunction(FitnessFunctionDelegate<Creature> newFitnessFunction)
+            => SetFitnessFunctinonFactory(new DefaultFitnessFunctionFactory<Creature>(newFitnessFunction));
 
         private void UpdateComputationManager()
         {
