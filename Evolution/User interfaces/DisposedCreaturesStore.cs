@@ -17,6 +17,7 @@ namespace Evolution
         {
             disposedCreatures = null;
             StoreCreatures = false;
+            IsEmpty = true;
         }
 
         /// <summary>
@@ -24,6 +25,10 @@ namespace Evolution
         /// </summary>
         public void SetStoreCreatures()
         {
+            if (StoreCreatures)
+                return;
+
+            IsEmpty = true;
             disposedCreatures = new Queue<Creature>();
             StoreCreatures = true;
         }
