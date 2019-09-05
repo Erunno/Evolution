@@ -27,7 +27,7 @@ namespace Evolution
 
         int NumberOfSurvivals { get; }
 
-        void SetMaximalNuberOfSurvivals(int newCount);
+        void SetMaximalNumberOfSurvivals(int newCount);
 
         RatedCreature<Creature> PeekBestCreature();
 
@@ -108,7 +108,7 @@ namespace Evolution
 
         public IEnumerable<RatedCreature<Creature>> GetSurvivingCreatures() => heap;
 
-        public void SetMaximalNuberOfSurvivals(int newCount)
+        public void SetMaximalNumberOfSurvivals(int newCount)
         {
             NumberOfSurvivals = newCount;
 
