@@ -43,6 +43,7 @@ namespace SimpleTSPSolver
 
             EnvironmentOf<Cycle> environment = new EnvironmentOf<Cycle>(startingInfo);
             environment.AddMutationProvider(() => new SwichingMutation(environment, rnd.Next()));
+            environment.AddMutationProvider(() => new SwichStrings(environment, rnd.Next()));
 
             environment.DisposedCreatures.SetStoreCreatures();
 
@@ -55,7 +56,7 @@ namespace SimpleTSPSolver
             lock (Lock)
             {
                 Console.WriteLine("New best cycle found:");
-                Console.WriteLine($"Value: {value}");
+                Console.WriteLine($"Value: {-value}");
                 Console.WriteLine(cycle);
                 Console.WriteLine();
             }

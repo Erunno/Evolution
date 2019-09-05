@@ -35,7 +35,7 @@ namespace SimpleTSPSolver
 
             sum += values[lastVert, firstVert];
 
-            return sum;
+            return -sum;
         }
     }
     

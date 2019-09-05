@@ -5,15 +5,27 @@ using Evolution;
 
 namespace SimpleTSPSolver
 {
-    class SwichingMutation : IMutation<Cycle>
+    abstract class CycleMutation
+    {
+        protected EnvironmentOf<Cycle> myEnvironment;
+        protected int[] GetNewCycleArray(int size)
+        {
+            lock (myEnvironment.DisposedCreatures)
+                if (!myEnvironment.DisposedCreatures.IsEmpty)
+                    return myEnvironment.DisposedCreatures.ExtractCreature().Verticies;
+
+            return new int[size];
+        }
+    }
+
+
+    class SwichingMutation : CycleMutation, IMutation<Cycle>
     {
         public SwichingMutation(EnvironmentOf<Cycle> environment, int seed)
         {
-            myEnvinronment = environment;
+            myEnvironment = environment;
             rnd = new Random(seed);
         }
-
-        EnvironmentOf<Cycle> myEnvinronment;
 
         Random rnd;
 
@@ -28,8 +40,8 @@ namespace SimpleTSPSolver
             numOfSwiches = (int)(rnd.NextDouble() * maxNumOfSwiches) + 1; //at least one swich will be performed
 
             int[] newCycleArray = GetNewCycleArray(parent.Verticies.Length);
-            for (int i = 0; i < newCycleArray.Length; i++)
-                newCycleArray[i] = parent.Verticies[i];
+
+            parent.Verticies.CopyTo(newCycleArray);
 
             for (int i = 0; i < numOfSwiches; i++)
             {
@@ -42,14 +54,47 @@ namespace SimpleTSPSolver
 
             return new Cycle(newCycleArray);
         }
+    }
 
-        private int[] GetNewCycleArray(int size)
+    class SwichStrings : CycleMutation, IMutation<Cycle>
+    {
+        public double MutationRate { get; set; }
+
+        public SwichStrings(EnvironmentOf<Cycle> environment, int rndSeed)
         {
-            lock (myEnvinronment.DisposedCreatures)
-                if (!myEnvinronment.DisposedCreatures.IsEmpty)
-                    return myEnvinronment.DisposedCreatures.ExtractCreature().Verticies;
+            myEnvironment = environment;
+            rnd = new Random(rndSeed);
+        }
 
-            return new int[size];
+        private Random rnd { get; }
+
+        public Cycle GetMutatedCreature(Cycle parent)
+        {
+            int sizeOfChunks = GetSizeOfSwichedChunks(parent);
+            Tuple<int, int> indexes = GetStartIndexes(sizeOfChunks, parent); //they can overlap it doesnt matter actually so why to slow down computation
+
+            int[] newCycle = GetNewCycleArray(parent.Verticies.Length);
+            parent.Verticies.CopyTo(newCycle);
+
+            for (int i = 0; i < sizeOfChunks; i++)
+                newCycle.Swich(
+                    (indexes.Item1 + i) % parent.Verticies.Length, 
+                    (indexes.Item2 + i) % parent.Verticies.Length
+                );
+
+            return new Cycle(newCycle);
+        }
+
+        private int GetSizeOfSwichedChunks(Cycle parent)
+            => rnd.Next(2, (int)Math.Max(2, parent.Verticies.Length * MutationRate));
+
+        private Tuple<int,int> GetStartIndexes(int chunksSize, Cycle parent)
+        {
+
+            int i1 = rnd.Next(0, parent.Verticies.Length);
+            int i2 = rnd.Next(0, parent.Verticies.Length);
+
+            return new Tuple<int, int>(i1, i2);
         }
     }
 
